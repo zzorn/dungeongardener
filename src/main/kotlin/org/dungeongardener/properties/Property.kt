@@ -1,6 +1,7 @@
 package org.dungeongardener.properties
 
 import org.flowutils.Symbol
+import kotlin.reflect.KType
 
 /**
  *
@@ -8,8 +9,9 @@ import org.flowutils.Symbol
 interface Property<T> {
 
     val name: Symbol
-    val desc: String
-    val type: Class<T>
+    val desc: String?
+    val type: KType
+    val javaType: Class<T>
 
     /**
      * In case of primitive types, and if a default value is available, the
@@ -20,6 +22,6 @@ interface Property<T> {
     fun getValue(host: Object): T
     fun setValue(host: Object, value: T)
 
-    val range: Range
+    val range: Range?
     val hidden: Boolean
 }

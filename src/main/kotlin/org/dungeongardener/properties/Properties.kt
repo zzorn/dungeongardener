@@ -52,9 +52,7 @@ fun Object.getProperties(): List<Property<*>> {
         // Fill in properties
         for (member in javaClass.kotlin.members) {
             if (member is KMutableProperty && member.annotations.none { it is Hidden}) {
-
-                // TODO: Store Property objects
-                properties.add(member)
+                properties.add(KotlinProperty(member))
             }
         }
     }
