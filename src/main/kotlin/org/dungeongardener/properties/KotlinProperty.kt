@@ -8,6 +8,7 @@ import kotlin.reflect.jvm.javaType
 /**
  *
  */
+// TODO: Check that kotlin property getters and setters work as assumed (taking host obj as parameter)
 class KotlinProperty<T>(val kotlinProperty: KMutableProperty<T>,
                         override val defaultValue: T? = null) : Property<T> {
 
