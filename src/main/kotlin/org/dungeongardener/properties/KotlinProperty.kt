@@ -18,10 +18,14 @@ class KotlinProperty<T>(val kotlinProperty: KMutableProperty<T>,
     override val type: KType = kotlinProperty.getter.returnType
     override val javaType: Class<T> = kotlinProperty.getter.returnType.javaType as Class<T>
 
-    override fun getValue(host: Object): T = kotlinProperty.getter.call(host)
-    override fun setValue(host: Object, value: T) = kotlinProperty.setter.call(host, value)
+    override fun getValue(host: Any): T = kotlinProperty.getter.call(host)
+    override fun setValue(host: Any, value: T) = kotlinProperty.setter.call(host, value)
 
     override val range: Range? = kotlinProperty.annotations.find { it is Range} as Range?
     override val hidden: Boolean = kotlinProperty.annotations.any { it is Hidden}
+
+    override fun toString(): String {
+        return "$name: ${type.toString()} = $defaultValue // $desc"
+    }
 
 }

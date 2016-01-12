@@ -19,9 +19,11 @@ interface Property<T> {
      */
     val defaultValue: T?
 
-    fun getValue(host: Object): T
-    fun setValue(host: Object, value: T)
+    fun getValue(host: Any): T
+    fun setValue(host: Any, value: T)
 
     val range: Range?
     val hidden: Boolean
+
+
 }

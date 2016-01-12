@@ -37,9 +37,9 @@ private val propertiesForClasses = object : ThreadLocal<MutableMap<Class<*>, Mut
     }
 }
 
-fun Object.getProperties(): List<Property<*>> {
+public fun Any.getProperties(): List<Property<*>> {
 
-    val javaClass = this.`class`
+    val javaClass = this.javaClass
 
     // Get property list
     var properties = propertiesForClasses.get()[javaClass]
