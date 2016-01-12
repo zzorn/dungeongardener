@@ -31,30 +31,34 @@ annotation class Desc(val description: String)
 annotation class Range(val min: Double = 0.0, val max: Double = 1.0, val center: Double = 0.0, val logarithmic: Boolean = false)
 // TODO: Create RangedNum delegate that uses a Range annotation or passed in min/max to clamp a numerical value to the range.
 
-private val propertiesForClasses = object : ThreadLocal<MutableMap<Class<*>, MutableList<Property<*>>>>() {
-    override fun initialValue(): MutableMap<Class<*>, MutableList<Property<*>>> {
+private val propertiesForClasses = object : ThreadLocal<MutableMap<Class<Any>, MutableList<Property<Any>>>>() {
+    override fun initialValue(): MutableMap<Class<Any>, MutableList<Property<Any>>> {
         return HashMap()
     }
 }
 
-public fun Any.getProperties(): List<Property<*>> {
+public fun Any.getProperties(): List<Property<Any>> {
 
     val javaClass = this.javaClass
 
     // Get property list
-    var properties = propertiesForClasses.get()[javaClass]
+    var properties: MutableList<Property<Any>>? = propertiesForClasses.get()[javaClass]
 
     if (properties == null) {
         // Create new list
-        properties = ArrayList()
-        propertiesForClasses.get()[javaClass] = properties
+        properties = ArrayList<Property<Any>>()
+        val props: MutableList<Property<Any>> = properties
+        propertiesForClasses.get()[javaClass] = props
 
         // Fill in properties
         for (member in javaClass.kotlin.members) {
             if (member is KMutableProperty && member.annotations.none { it is Hidden}) {
-                properties.add(KotlinProperty(member))
+                props.add(KotlinProperty(member as KMutableProperty<Any>))
             }
         }
+
+        // Sort in alphabetical order by name
+        props.sortBy { it.name.toString() }
     }
 
     // Return list of non hidden properties of the class
