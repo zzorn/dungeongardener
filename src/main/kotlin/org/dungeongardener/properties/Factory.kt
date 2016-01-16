@@ -7,7 +7,7 @@ package org.dungeongardener.properties
  * TODO: Or something that is easier to serialize, a limited scripting language for
  * property value calculation (arithmetics, references), object construction)
  */
-interface Factory<T> : Propertied { // TODO: Should this extend propertied, or just have a map from property (id) to a parsed function to calculate it?
+interface Factory<T> { // TODO: Should this extend propertied, or just have a map from property (id) to a parsed function to calculate it?
 
     /**
      * Unique ID for this factory, could e.g. contain a path.
