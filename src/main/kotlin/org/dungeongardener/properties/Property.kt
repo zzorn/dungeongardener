@@ -1,7 +1,6 @@
 package org.dungeongardener.properties
 
 import org.flowutils.Symbol
-import kotlin.reflect.KType
 
 /**
  *
@@ -10,7 +9,6 @@ interface Property<T> {
 
     val name: Symbol
     val desc: String?
-    val type: KType
     val javaType: Class<T>
 
     /**

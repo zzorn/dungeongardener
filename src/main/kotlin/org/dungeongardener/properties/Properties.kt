@@ -1,5 +1,7 @@
 package org.dungeongardener.properties
 
+import org.dungeongardener.properties.dynamic.DynamicPropertied
+import org.dungeongardener.properties.poko.KotlinProperty
 import java.util.*
 import kotlin.reflect.KMutableProperty
 
@@ -59,6 +61,12 @@ public fun Any.getProperties(): List<Property<Any>> {
 
         // Sort in alphabetical order by name
         props.sortBy { it.name.toString() }
+    }
+
+    if (this is DynamicPropertied) {
+        // Add dynamic properties provided by the class
+        properties = ArrayList(properties)
+        properties.addAll(this.getDynamicProperties())
     }
 
     // Return list of non hidden properties of the class
