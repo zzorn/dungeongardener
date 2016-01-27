@@ -1,6 +1,9 @@
 package org.dungeongardener.util.parser.parsers
 
+import org.dungeongardener.util.parser.GeneratorContext
 import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.result.ParsingFail
+import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
 
 /**
@@ -8,14 +11,21 @@ import java.io.File
  */
 interface Parser {
 
-    fun parse(inputFile: File) : List<Any>  = parse(inputFile.readText())
+    fun parse(inputFile: File) : ParsingResult = parse(inputFile.readText())
 
-    fun parse(input: String) : List<Any> {
+    fun parse(input: String) : ParsingResult {
         val context = ParsingContext(input)
-        parse(context)
-        return context.getResults()
+        if (parse(context)) {
+            return context.getResult()
+        }
+        else {
+            return ParsingFail()
+        }
     }
 
     fun parse(context: ParsingContext): Boolean
+
+    infix fun generates(generator: (GeneratorContext) -> Any): Parser = GeneratingParser(this, generator)
+    infix fun process(processor: (GeneratorContext) -> Unit): Parser = ProcessingParser(this, processor)
 
 }

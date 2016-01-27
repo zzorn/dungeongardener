@@ -5,8 +5,12 @@ import org.dungeongardener.util.parser.ParsingContext
 /**
  *
  */
-class Choice(val first: Parser, val second: Parser) : Parser {
+class AnyOf(vararg val parsers: Parser) : Parser {
     override fun parse(context: ParsingContext): Boolean {
-        return first.parse(context) || second.parse(context)
+        for (parser in parsers) {
+            if (parser.parse(context)) return true
+        }
+
+        return false
     }
 }

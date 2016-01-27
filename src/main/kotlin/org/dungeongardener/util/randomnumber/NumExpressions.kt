@@ -10,7 +10,7 @@ import java.util.*
  */
 class NumExpressions(val expressions: MutableMap<Symbol, NumExpr> = LinkedHashMap()): NumContext {
 
-    private val parser = NumExprParser()
+//    private val parser = NumExprParser()
 
     override val random: RandomSequence = XorShift()
 
@@ -19,7 +19,7 @@ class NumExpressions(val expressions: MutableMap<Symbol, NumExpr> = LinkedHashMa
     }
 
     fun addExpression(expressionId: Symbol, expressionText: String) {
-        addExpression(expressionId, parser.parseExpr(expressionText))
+//        addExpression(expressionId, parser.parseExpr(expressionText))
     }
 
     override fun get(expressionId: Symbol): NumExpr {

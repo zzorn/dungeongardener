@@ -1,41 +1,114 @@
 package org.dungeongardener.util.parser
 
+import org.dungeongardener.util.parser.parsers.Parser
+import org.dungeongardener.util.parser.result.ParseSuccess
+import org.dungeongardener.util.parser.result.ParsingResult
 import java.util.*
 
 /**
  *
  */
-class ParsingContext(val input: CharSequence) {
+class ParsingContext(val input: CharSequence) : GeneratorContext {
 
-    private data class Node(var position: Int, var matchedText: String = "", var pushedResults: Int = 0)
-    private var currentPosition: Int = 0
-    private val parsingStack: Deque<Node> = LinkedList()
-    private val results: Deque<Any> = LinkedList()
+    private class Node(val parser: Parser?, val startPos: Int, var endPos: Int = startPos, val parent: Node? = null) {
+        private var subNodes: Deque<Node> = LinkedList()
+        var resultsAdded: Int = 0
 
-    init {
-        parsingStack.push(Node(currentPosition))
+        fun addSubNode(parser: Parser, startPos: Int, endPos: Int): Node {
+            val subNode = Node(parser, startPos, endPos, this)
+            subNodes.push(subNode)
+            updateEnd(endPos)
+            return subNode
+        }
+
+        private fun updateEnd(endPos: Int) {
+            this.endPos = endPos
+            parent?.updateEnd(endPos)
+        }
+
+        fun matchedText(context: ParsingContext): String {
+            println(toDebugString(context))
+            return context.input.substring(startPos, endPos)
+        }
+
+        fun popNode(context: ParsingContext): Int {
+            for (subNode in subNodes) subNode.popNode(context)
+            for (i in 1 .. resultsAdded) context.results.pop()
+            updateEnd(startPos)
+            return startPos
+        }
+
+        fun popSubNode(context: ParsingContext): Int {
+            endPos = subNodes.pop().popNode(context)
+            return endPos
+        }
+
+        fun toDebugString(context: ParsingContext): String {
+            val s  = StringBuilder()
+            toDebugString(context, s)
+            return s.toString()
+        }
+
+        fun toDebugString(context: ParsingContext, s: StringBuilder) {
+            s.append((parser?.javaClass?.simpleName).orEmpty())
+            s.append("( ")
+            if (subNodes.isNotEmpty()) {
+                for(subNode in subNodes) s.append(subNode.toDebugString(context, s))
+            }
+            else {
+                s.append("'")
+                s.append(context.input.subSequence(startPos, endPos))
+                s.append("'")
+            }
+            s.append(" )")
+        }
     }
 
-    fun getResults(): List<Any> = ArrayList(results)
+    private var currentPosition: Int = 0
+    private var currentNode: Node = Node(null, 0, 0)
+    private val results: Deque<Any> = LinkedList()
 
-    fun pushResult(result: Any) {
-        parsingStack.peek().pushedResults++
+    override val matched: String
+        get() = currentNode.matchedText(this)
+
+    fun getResult(): ParsingResult {
+        val r = ArrayList(results)
+        r.reverse()
+        return ParseSuccess(r)
+    }
+
+    override fun pushResult(result: Any) {
         results.push(result)
     }
 
-    fun popResult(): Any {
-        parsingStack.peek().pushedResults--
+    override fun popResult(): Any {
         return results.pop()
     }
 
-    fun pushParsePosition(matchedText: String) {
-        parsingStack.push(Node(currentPosition, matchedText))
+    fun addSubNode(parser: Parser, startPos: Int, endPos: Int) {
+        val node = currentNode.addSubNode(parser, startPos, endPos)
+        currentPosition = node.endPos
     }
 
-    fun popParsePosition() {
-        val node = parsingStack.pop()
-        currentPosition = node.position
-        for (i in 0 .. node.pushedResults) results.pop()
+    fun addSubNodeAndRecurse(parser: Parser) {
+        currentNode = currentNode.addSubNode(parser, currentPosition, currentPosition)
+    }
+
+    fun popUp() {
+        currentNode.popNode(this)
+        moveUp()
+    }
+
+    fun moveUp() {
+        currentNode = currentNode.parent ?: throw IllegalStateException("current node has no parent")
+    }
+
+    fun popSubNodes(numberOfPopsToDo: Int) {
+        for (i in 1..numberOfPopsToDo) popSubNode()
+    }
+
+    fun popSubNode() {
+        currentPosition = currentNode.popSubNode(this)
     }
 
     fun inputLeft(): Int = input.length - currentPosition
@@ -50,10 +123,9 @@ class ParsingContext(val input: CharSequence) {
         return true
     }
 
-    fun consume(text: String): Boolean {
+    fun consume(parser: Parser, text: String): Boolean {
         if (startsWith(text)) {
-            pushParsePosition(text)
-            currentPosition += text.length
+            addSubNode(parser, currentPosition, currentPosition + text.length)
             return true
         }
         else {
@@ -61,6 +133,13 @@ class ParsingContext(val input: CharSequence) {
         }
     }
 
+    fun consume(parser: Parser, numberOfChars: Int) {
+        addSubNode(parser, currentPosition, currentPosition + numberOfChars)
+    }
 
+    fun getNextChar(forwardOffset: Int = 0): Char? {
+        if (inputLeft() < forwardOffset + 1) return null
+        else return input[currentPosition + forwardOffset]
+    }
 
 }
