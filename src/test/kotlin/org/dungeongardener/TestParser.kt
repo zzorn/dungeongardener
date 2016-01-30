@@ -70,6 +70,52 @@ class TestParser {
     }
 
     @Test
+    fun testNot() {
+        val parser = Sequence(AnyOf("foo", "bar"), Not("zap"), Optional("bup"), EndOfInput())
+
+        checkParsing(parser, true, "foobup")
+        checkParsing(parser, true, "foo")
+        checkParsing(parser, true, "foobup")
+        checkParsing(parser, true, "bar")
+        checkParsing(parser, false, "foozap")
+        checkParsing(parser, false, "barzap")
+        checkParsing(parser, false, "barzapbup")
+        checkParsing(parser, false, "asdasd")
+    }
+
+    @Test
+    fun testAnd() {
+        val parser = Sequence(AnyOf("foo", "bar"), And("zap"), Optional("bup"))
+
+        checkParsing(parser, false, "foo")
+        checkParsing(parser, false, "foobup")
+        checkParsing(parser, false, "barz")
+        checkParsing(parser, false, "barbup")
+        checkParsing(parser, true, "foozap")
+        checkParsing(parser, true, "barzap")
+        checkParsing(parser, true, "barzapbup")
+        checkParsing(parser, true, "barzapdsfsdf")
+        checkParsing(parser, false, "asdasd")
+    }
+
+    @Test
+    fun testIgnoreCase() {
+        val parser = Sequence(OneOrMore(AnyOf(StringParser("foo", true), StringParser("BAR", false))), EndOfInput())
+
+        checkParsing(parser, true, "foo")
+        checkParsing(parser, true, "fooBAR")
+        checkParsing(parser, true, "FooBARBAR")
+        checkParsing(parser, true, "FOOBARBAR")
+        checkParsing(parser, true, "FooBAR")
+        checkParsing(parser, true, "BARFoOBARBAR")
+        checkParsing(parser, true, "BAR")
+        checkParsing(parser, false, "bar")
+        checkParsing(parser, false, "foobar")
+        checkParsing(parser, false, "FOOBARBAr")
+        checkParsing(parser, false, "asdasd")
+    }
+
+    @Test
     fun testFooBarFooBar() {
         val fooOrBar = AnyOf(StringParser("foo") generates {1}, StringParser("bar") generates {2})
         val parser = Sequence(fooOrBar, fooOrBar, EndOfInput())

@@ -5,7 +5,7 @@ import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ParsingNode
 
 /**
- *
+ * Matches the specified parser zero or more times.
  */
 class ZeroOrMore(val parser: Parser): ParserBase() {
 

@@ -5,20 +5,18 @@ import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ParsingNode
 
 /**
- * Matches the specified parser one or more times.
+ * The specified parser should not match from here on, and the result of it is discarded
  */
-class OneOrMore(val parser: Parser): ParserBase() {
+class Not(val parser: Parser) : ParserBase() {
 
     constructor(text: String) : this(StringParser(text))
 
     override fun doParse(parserNode: ParsingNode): Boolean {
-        if (!parser.parse(parserNode)) {
-            return false
+        val success = !parser.parse(parserNode)
+        if (success) {
+            // Remove the parsed node
+            parserNode.parent?.removeSubNode()
         }
-        else {
-            while (parser.parse(parserNode)) {}
-            return true
-        }
-
+        return success
     }
 }

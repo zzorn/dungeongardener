@@ -4,7 +4,7 @@ import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ParsingNode
 
 /**
- *
+ * Input should end here
  */
 class EndOfInput : ParserBase() {
     override fun doParse(parserNode: ParsingNode): Boolean {

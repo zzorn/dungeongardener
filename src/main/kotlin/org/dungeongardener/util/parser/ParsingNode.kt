@@ -42,11 +42,16 @@ class ParsingNode(val input: String,
         else return input[end + forwardOffset]
     }
 
-    fun inputContinuesWith(text: String): Boolean {
+    fun inputContinuesWith(text: String, ignoreCase: Boolean = false): Boolean {
         if (inputLeft() < text.length) return false
 
         for (i in 0 .. text.length - 1) {
-            if (text[i] != input[end + i]) return false
+            if (!ignoreCase) {
+                if (text[i] != input[end + i]) return false
+            }
+            else {
+                if (text[i].toUpperCase() != input[end + i].toUpperCase()) return false
+            }
         }
 
         return true
@@ -60,8 +65,8 @@ class ParsingNode(val input: String,
         else return false
     }
 
-    fun attemptToConsumeText(attemptedText: String): Boolean {
-        if (inputContinuesWith(attemptedText)) {
+    fun attemptToConsumeText(attemptedText: String, ignoreCase: Boolean = false): Boolean {
+        if (inputContinuesWith(attemptedText, ignoreCase)) {
             consumeInput(attemptedText.length)
             return true
         }

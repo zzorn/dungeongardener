@@ -5,7 +5,7 @@ import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ParsingNode
 
 /**
- *
+ * Some of the specified characters with the specified multiplicity (zero or one, one, zero or more, one or more - defaults to one)
  */
 class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multiplicity = Multiplicity.ONE) : ParserBase() {
 
