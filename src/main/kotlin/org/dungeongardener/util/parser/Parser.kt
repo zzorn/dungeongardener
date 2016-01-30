@@ -23,7 +23,7 @@ interface Parser {
     fun parse(input: String, inputName: String = "input") : ParsingResult {
         val root = ParsingNode(input, errorMessage = ParsingFail(inputName))
         if (parse(root)) {
-            println(root)
+            // DEBUG: println(root)
             // Generate result if parsing was successful
             return root.generateResults()
         }
