@@ -9,6 +9,9 @@ import java.io.File
 /**
  * Interface for parser rules.  Parses some expression or atomic element.
  */
+// TODO: Accept several constructor parameters for most parsers, such as option etc.
+// TODO: Support char range parser
+// TODO: Somehow convert strings or chars or char ranges automatically to a parser??  Or use datatype Any, and pass in those, but that is unintuitive
 interface Parser {
 
     /**

@@ -17,7 +17,14 @@ class GeneratorContext {
      */
     var results: LinkedList<Any> = LinkedList()
 
+    /**
+     * Add given result to the end of the results.
+     */
     fun push(result: Any) = results.addLast(result)
+
+    /**
+     * Remove and return the last pushed result.
+     */
     fun <T> pop(): T = results.removeLast() as T
 
 }
