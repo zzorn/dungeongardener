@@ -107,12 +107,13 @@ class ParsingNode(val input: String,
 
     private fun toString(s: StringBuilder, indent: Int) {
         for (i in 1..indent) s.append("  ")
-        s.append(parser?.name?.capitalize() ?: "Root")
-
         if (ownLength > 0) {
-            s.append("  \"")
+            s.append("\"")
             s.append(matchedText)
             s.append("\"")
+        }
+        else {
+            s.append(parser?.name?.capitalize() ?: "Root")
         }
 
         s.append("\n")

@@ -236,6 +236,8 @@ class TestParser {
         checkParsing(inputLine, false, "foobar")
         checkParsing(inputLine, false, "1 +")
         checkParsing(inputLine, false, "+1")
+        checkParsing(inputLine, false, "122f")
+        checkParsing(inputLine, false, "- 111")
         checkParsing(inputLine, false, "1 + (2 + 3 + 4)")
         checkParsing(inputLine, false, "(1 + 4")
         checkParsing(inputLine, false, "   \n      (  1     \n                 +                4")
