@@ -1,18 +1,15 @@
 package org.dungeongardener.util.parser.parsers
 
 import org.dungeongardener.util.parser.GeneratorContext
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 
 /**
  *
  */
-class ProcessingParser(val parser: Parser, val process: (GeneratorContext) -> Unit): Parser {
+class ProcessingParser(val parser: Parser, val process: (GeneratorContext) -> Unit): ParserBase() {
 
-    override fun parse(context: ParsingContext): Boolean {
-        if (parser.parse(context)) {
-            process(context)
-            return true
-        }
-        else return false
+    override fun doParse(parserNode: ParsingNode): Boolean {
+        parserNode.resultProcessor = process
+        return parser.parse(parserNode)
     }
 }

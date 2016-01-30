@@ -1,7 +1,7 @@
 package org.dungeongardener.util.parser.parsers
 
 import org.dungeongardener.util.parser.GeneratorContext
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 import org.dungeongardener.util.parser.result.ParsingFail
 import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
@@ -11,21 +11,41 @@ import java.io.File
  */
 interface Parser {
 
+    /**
+     * Used for making error messages and debugging more clear
+     */
+    var name: String
+
     fun parse(inputFile: File) : ParsingResult = parse(inputFile.readText())
 
     fun parse(input: String) : ParsingResult {
-        val context = ParsingContext(input)
-        if (parse(context)) {
-            return context.getResult()
+        val root = ParsingNode(input)
+        if (parse(root)) {
+
+            // DEBUG: println(root)
+
+            // Generate result if parsing was successful
+            return root.generateResults()
         }
         else {
+            // Parse failed
+            // TODO: Include info on why
             return ParsingFail()
         }
     }
 
-    fun parse(context: ParsingContext): Boolean
+    fun parse(parent: ParsingNode): Boolean
+
 
     infix fun generates(generator: (GeneratorContext) -> Any): Parser = GeneratingParser(this, generator)
     infix fun process(processor: (GeneratorContext) -> Unit): Parser = ProcessingParser(this, processor)
+
+    /**
+     * Names the parser and returns it
+     */
+    infix fun named(name: String): Parser {
+        this.name = name
+        return this
+    }
 
 }

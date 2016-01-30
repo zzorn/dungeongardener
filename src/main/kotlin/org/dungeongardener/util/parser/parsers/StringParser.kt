@@ -1,12 +1,16 @@
 package org.dungeongardener.util.parser.parsers
 
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 
 /**
  *
  */
-class StringParser(val text: String) : Parser {
-    override fun parse(context: ParsingContext): Boolean = context.consume(this, text)
+class StringParser(val text: String) : ParserBase() {
+
+    override fun doParse(parserNode: ParsingNode): Boolean {
+        return parserNode.attemptToConsumeText(text)
+    }
+
 }
 
 val String.parser: StringParser

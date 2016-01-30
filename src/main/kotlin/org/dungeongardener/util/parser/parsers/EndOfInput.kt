@@ -1,12 +1,12 @@
 package org.dungeongardener.util.parser.parsers
 
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 
 /**
  *
  */
-class EndOfInput : Parser {
-    override fun parse(context: ParsingContext): Boolean {
-        return context.inputLeft() <= 0
+class EndOfInput : ParserBase() {
+    override fun doParse(parserNode: ParsingNode): Boolean {
+        return parserNode.inputLeft() <= 0
     }
 }

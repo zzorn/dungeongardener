@@ -85,7 +85,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration() {
-        val parser = "foo".parser generates {it.matched}
+        val parser = "foo".parser generates {it.text }
 
         checkResult(parser, "foo", "foo")
         checkResult(parser, "foobar", "foo")
@@ -94,7 +94,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration2() {
-        val parser = Sequence("foo".parser, "bar".parser) generates {it.matched}
+        val parser = Sequence("foo".parser, "bar".parser) generates {it.text }
 
         checkResult(parser, "foobarbar", "foobar")
         checkParsing(parser, false, "foo")
@@ -102,7 +102,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration3() {
-        val parser = OneOrMore(AnyOf("foo".parser, "bar".parser)) generates {it.matched}
+        val parser = OneOrMore(AnyOf("foo".parser, "bar".parser)) generates {it.text }
 
         checkResultWithSameReturn(parser, "foo")
         checkResultWithSameReturn(parser, "bar")
@@ -117,7 +117,7 @@ class TestParser {
     @Test
     fun testValueGeneration4() {
         val p1 = OneOrMore(AnyOf("foo".parser, "bar".parser))
-        val p2 = OneOrMore(Sequence(p1, Optional("zip".parser))) generates {it.matched}
+        val p2 = OneOrMore(Sequence(p1, Optional("zip".parser))) generates {it.text }
 
         checkResultWithSameReturn(p2, "foozipfoo")
         checkResultWithSameReturn(p2, "foobarzipfoo")
@@ -130,7 +130,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration5() {
-        val parser = ZeroOrMore(AnyOf("foo".parser, "bar".parser)) generates {it.matched}
+        val parser = ZeroOrMore(AnyOf("foo".parser, "bar".parser)) generates {it.text }
 
         checkResultWithSameReturn(parser, "")
         checkResultWithSameReturn(parser, "foo")
@@ -144,7 +144,7 @@ class TestParser {
     @Test
     fun testValueGeneration6() {
         val p1 = AnyOf("0".parser, "1".parser)
-        val parser = ZeroOrMore(AnyOf(p1, "foo".parser, "bar".parser)) generates {it.matched}
+        val parser = ZeroOrMore(AnyOf(p1, "foo".parser, "bar".parser)) generates {it.text }
 
         checkResultWithSameReturn(parser, "")
         checkResultWithSameReturn(parser, "1foo")
@@ -157,7 +157,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration7() {
-        val parser = Sequence("foo".parser, Sequence("bar".parser, "bur".parser)) generates {it.matched}
+        val parser = Sequence("foo".parser, Sequence("bar".parser, "bur".parser)) generates {it.text }
 
         checkResult(parser, "foobarbur", "foobarbur")
         checkParsing(parser, false, "foobar")
@@ -165,22 +165,22 @@ class TestParser {
 
     @Test
     fun testExpressionParsing() {
-        val whitespace = ZeroOrMoreCharParser(" \t\n")
-        val digit = CharParser("0123456789")
-        val number = Sequence(Optional("-".parser), OneOrMore(digit), whitespace) generates {Integer.parseInt(it.matched.trim())}
+        val whitespace = ZeroOrMoreCharParser(" \t\n").named("whitespace")
+        val digit = CharParser("0123456789").named("digit")
+        val number = Sequence(Optional("-".parser), OneOrMore(digit), whitespace).named("number") generates {Integer.parseInt(it.text.trim())}
         val expression = LazyParser()
-        val parens = Sequence("(".parser, whitespace, expression, ")".parser, whitespace)
-        val term = AnyOf(number, parens)
+        val parens = Sequence("(".parser, whitespace, expression, ")".parser, whitespace).named("parens")
+        val term = AnyOf(number, parens).named("term")
         expression.parser = Sequence(
                 term,
                 Optional(
                         Sequence(
                         "+".parser,
                         whitespace,
-                        term).generates { (it.popResult() as Int) + it.popResult() as Int }
+                        term).generates { it.pop<Int>() + it.pop<Int>() }
                 ),
-                whitespace)
-        val inputLine = Sequence(whitespace, expression, EndOfInput())
+                whitespace).named("expression")
+        val inputLine = Sequence(whitespace, expression, EndOfInput()).named("inputLine")
 
 
         checkParsing(whitespace, true, "")
@@ -200,11 +200,10 @@ class TestParser {
         checkResult(inputLine, "((1+3)+2)", 6)
         checkResult(inputLine, "((1+-3)+-12)", -14)
         checkResult(inputLine, "1+ 2", 3)
-        checkResult(inputLine, "  1 ¸\n + 2 ", 3)
-        checkResult(inputLine, "1 + 3 + 2", 6)
-        checkResult(inputLine, " ( 1 + 3 + 2 ) ", 6)
+        checkResult(inputLine, "  1  \n + 2 ", 3)
         checkResult(inputLine, "(1 + 3) + 2", 6)
         checkResult(inputLine, "1 + (3 + 2)", 6)
+        checkResult(inputLine, "-1 + (-3 + -2)", -6)
         checkParsing(inputLine, false, "foobar")
         checkParsing(inputLine, false, "1 +")
         checkParsing(inputLine, false, "+1")

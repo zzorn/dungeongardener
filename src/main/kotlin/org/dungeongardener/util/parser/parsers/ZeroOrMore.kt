@@ -1,17 +1,15 @@
 package org.dungeongardener.util.parser.parsers
 
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 
 /**
  *
  */
-class ZeroOrMore(val parser: Parser): Parser {
-    override fun parse(context: ParsingContext): Boolean {
-        context.addSubNodeAndRecurse(this)
+class ZeroOrMore(val parser: Parser): ParserBase() {
 
-        while (parser.parse(context)) {}
+    override fun doParse(parserNode: ParsingNode): Boolean {
 
-        context.moveUp()
+        while (parser.parse(parserNode)) {}
 
         return true
     }

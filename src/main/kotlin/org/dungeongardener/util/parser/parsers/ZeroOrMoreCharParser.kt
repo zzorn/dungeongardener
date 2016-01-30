@@ -1,25 +1,26 @@
 package org.dungeongardener.util.parser.parsers
 
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 
 /**
  *
  */
-class ZeroOrMoreCharParser(val acceptedCharacters: CharSequence) : Parser{
-    override fun parse(context: ParsingContext): Boolean {
+class ZeroOrMoreCharParser(val acceptedCharacters: CharSequence) : ParserBase() {
+
+    override fun doParse(parserNode: ParsingNode): Boolean {
 
         var offset = 0
-        while (nextCharIsValid(context, offset)) {
+        while (nextCharIsValid(parserNode, offset)) {
             offset++
         }
 
-        if (offset > 0) context.consume(this, offset)
+        if (offset > 0) parserNode.consumeInput(offset)
 
         return true
     }
 
-    private fun nextCharIsValid(context: ParsingContext, offset: Int = 0): Boolean {
-        val nextChar = context.getNextChar(offset)
+    private fun nextCharIsValid(parserNode: ParsingNode, offset: Int = 0): Boolean {
+        val nextChar = parserNode.nextInputChar(offset)
         return nextChar != null && acceptedCharacters.contains(nextChar)
     }
 }

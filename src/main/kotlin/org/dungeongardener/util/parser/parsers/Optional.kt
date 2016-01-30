@@ -1,13 +1,13 @@
 package org.dungeongardener.util.parser.parsers
 
-import org.dungeongardener.util.parser.ParsingContext
+import org.dungeongardener.util.parser.ParsingNode
 
 /**
  *
  */
-class Optional(val parser: Parser) : Parser {
-    override fun parse(context: ParsingContext): Boolean {
-        parser.parse(context)
+class Optional(val parser: Parser) : ParserBase() {
+    override fun doParse(parserNode: ParsingNode): Boolean {
+        parser.parse(parserNode)
         return true
     }
 }
