@@ -1,6 +1,4 @@
-package org.dungeongardener.util.parser.parsers
-
-import org.dungeongardener.util.parser.ParsingNode
+package org.dungeongardener.util.parser
 
 /**
  * Base class for parsers

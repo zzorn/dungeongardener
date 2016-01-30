@@ -1,5 +1,6 @@
 package org.dungeongardener.util.parser.parsers
 
+import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ParsingNode
 
 /**
@@ -15,3 +16,5 @@ class StringParser(val text: String) : ParserBase() {
 
 val String.parser: StringParser
     get() = StringParser(this)
+
+operator fun String.unaryMinus(): StringParser = StringParser(this)

@@ -1,6 +1,8 @@
 package org.dungeongardener.util.parser.parsers
 
 import org.dungeongardener.util.parser.GeneratorContext
+import org.dungeongardener.util.parser.Parser
+import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ParsingNode
 
 /**

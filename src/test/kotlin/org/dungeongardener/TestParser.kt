@@ -1,5 +1,7 @@
 package org.dungeongardener
 
+import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
+import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.parsers.*
 import org.dungeongardener.util.parser.result.ParseSuccess
 import org.junit.Assert.assertEquals
@@ -165,17 +167,31 @@ class TestParser {
 
     @Test
     fun testExpressionParsing() {
-        val whitespace = ZeroOrMoreCharParser(" \t\n").named("whitespace")
-        val digit = CharParser("0123456789").named("digit")
-        val number = Sequence(Optional("-".parser), OneOrMore(digit), whitespace).named("number") generates {Integer.parseInt(it.text.trim())}
+        val whitespace = CharParser(" \t\n", ZERO_OR_MORE).named("whitespace")
+        val digit = CharParser('0'..'9').named("digit")
+        val number =
+                Sequence(
+                        Optional("-"),
+                        OneOrMore(digit),
+                        whitespace
+                ).named("number").generates {
+                    Integer.parseInt(it.text.trim())
+                }
         val expression = LazyParser()
-        val parens = Sequence("(".parser, whitespace, expression, ")".parser, whitespace).named("parens")
+        val parens =
+                Sequence(
+                        -"(",
+                        whitespace,
+                        expression,
+                        -")",
+                        whitespace
+                ).named("parens")
         val term = AnyOf(number, parens).named("term")
         expression.parser = Sequence(
                 term,
                 Optional(
                         Sequence(
-                        "+".parser,
+                        -"+",
                         whitespace,
                         term).generates { it.pop<Int>() + it.pop<Int>() }
                 ),
@@ -191,7 +207,7 @@ class TestParser {
         checkResult(inputLine, "1", 1)
         checkResult(inputLine, "10", 10)
         checkResult(inputLine, "-120", -120)
-        checkResult(inputLine, " 1 ", 1)
+        checkResult(inputLine, " 1203456798 ", 1203456798)
         checkResult(inputLine, "1+1", 2)
         checkResult(inputLine, "1+2", 3)
         checkResult(inputLine, "1+-2", -1)

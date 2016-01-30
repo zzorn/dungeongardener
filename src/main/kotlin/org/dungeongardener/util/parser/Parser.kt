@@ -1,7 +1,9 @@
-package org.dungeongardener.util.parser.parsers
+package org.dungeongardener.util.parser
 
 import org.dungeongardener.util.parser.GeneratorContext
 import org.dungeongardener.util.parser.ParsingNode
+import org.dungeongardener.util.parser.parsers.GeneratingParser
+import org.dungeongardener.util.parser.parsers.ProcessingParser
 import org.dungeongardener.util.parser.result.ParsingFail
 import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
@@ -9,7 +11,6 @@ import java.io.File
 /**
  * Interface for parser rules.  Parses some expression or atomic element.
  */
-// TODO: Accept several constructor parameters for most parsers, such as option etc.
 // TODO: Support char range parser
 // TODO: Somehow convert strings or chars or char ranges automatically to a parser??  Or use datatype Any, and pass in those, but that is unintuitive
 interface Parser {

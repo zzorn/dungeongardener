@@ -1,6 +1,5 @@
 package org.dungeongardener.util.parser
 
-import org.dungeongardener.util.parser.parsers.Parser
 import org.dungeongardener.util.parser.result.ParseSuccess
 import java.util.*
 
