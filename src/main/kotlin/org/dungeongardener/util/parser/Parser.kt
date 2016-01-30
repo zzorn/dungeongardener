@@ -2,6 +2,7 @@ package org.dungeongardener.util.parser
 
 import org.dungeongardener.util.parser.parsers.GeneratingParser
 import org.dungeongardener.util.parser.parsers.ProcessingParser
+import org.dungeongardener.util.parser.result.ParsingFail
 import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
 
@@ -17,10 +18,10 @@ interface Parser {
      */
     var name: String
 
-    fun parse(inputFile: File) : ParsingResult = parse(inputFile.readText())
+    fun parse(inputFile: File) : ParsingResult = parse(inputFile.readText(), inputFile.name)
 
-    fun parse(input: String) : ParsingResult {
-        val root = ParsingNode(input)
+    fun parse(input: String, inputName: String = "input") : ParsingResult {
+        val root = ParsingNode(input, errorMessage = ParsingFail(inputName))
         if (parse(root)) {
 
             // DEBUG: println(root)

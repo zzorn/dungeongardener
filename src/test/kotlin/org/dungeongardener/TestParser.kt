@@ -238,15 +238,16 @@ class TestParser {
         checkParsing(inputLine, false, "+1")
         checkParsing(inputLine, false, "1 + (2 + 3 + 4)")
         checkParsing(inputLine, false, "(1 + 4")
+        checkParsing(inputLine, false, "   \n      (  1     \n                 +                4")
     }
 
 
     private fun checkParsing(parser: Parser, shouldSucceed: Boolean, testString: String) {
-        assertEquals(shouldSucceed, parser.parse(testString).success)
+        assertEquals(shouldSucceed, parser.parse(testString, "parsing test").success)
     }
 
     private fun checkResult(parser: Parser, testString: String, vararg expectedResult: Any) {
-        val result = parser.parse(testString)
+        val result = parser.parse(testString, "parsing test")
         assertEquals(true, result.success)
         assertEquals(expectedResult.toList(), (result as ParseSuccess).results.toList())
     }
