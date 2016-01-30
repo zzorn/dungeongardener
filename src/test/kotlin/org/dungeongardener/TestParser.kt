@@ -167,8 +167,11 @@ class TestParser {
 
     @Test
     fun testExpressionParsing() {
+
         val whitespace = CharParser(" \t\n", ZERO_OR_MORE).named("whitespace")
+
         val digit = CharParser('0'..'9').named("digit")
+
         val number =
                 Sequence(
                         Optional("-"),
@@ -177,7 +180,9 @@ class TestParser {
                 ).named("number").generates {
                     Integer.parseInt(it.text.trim())
                 }
+
         val expression = LazyParser()
+
         val parens =
                 Sequence(
                         -"(",
@@ -186,7 +191,9 @@ class TestParser {
                         -")",
                         whitespace
                 ).named("parens")
+
         val term = AnyOf(number, parens).named("term")
+
         expression.parser = Sequence(
                 term,
                 Optional(
@@ -195,8 +202,14 @@ class TestParser {
                         whitespace,
                         term).generates { it.pop<Int>() + it.pop<Int>() }
                 ),
-                whitespace).named("expression")
-        val inputLine = Sequence(whitespace, expression, EndOfInput()).named("inputLine")
+                whitespace
+        ).named("expression")
+
+        val inputLine = Sequence(
+                whitespace,
+                expression,
+                EndOfInput()
+        ).named("inputLine")
 
 
         checkParsing(whitespace, true, "")
@@ -223,6 +236,8 @@ class TestParser {
         checkParsing(inputLine, false, "foobar")
         checkParsing(inputLine, false, "1 +")
         checkParsing(inputLine, false, "+1")
+        checkParsing(inputLine, false, "1 + (2 + 3 + 4)")
+        checkParsing(inputLine, false, "(1 + 4")
     }
 
 

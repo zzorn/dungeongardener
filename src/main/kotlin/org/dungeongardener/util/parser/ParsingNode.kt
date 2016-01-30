@@ -1,6 +1,7 @@
 package org.dungeongardener.util.parser
 
 import org.dungeongardener.util.parser.result.ParseSuccess
+import org.dungeongardener.util.parser.result.ParsingFail
 import java.util.*
 
 /**
@@ -10,6 +11,7 @@ class ParsingNode(val input: String,
                   val parser: Parser? = null,
                   val start: Int = 0,
                   var ownLength: Int = 0,
+                  val errorMessage: ParsingFail = ParsingFail(),
                   val parent: ParsingNode? = null) {
 
     var resultGenerator: ((GeneratorContext) -> Any)? = null
@@ -24,7 +26,7 @@ class ParsingNode(val input: String,
         get() = input.substring(start, end)
 
     fun addSubNode(parser: Parser): ParsingNode {
-        val subNode = ParsingNode(input, parser, end, 0, this)
+        val subNode = ParsingNode(input, parser, end, 0, errorMessage, this)
         subNodes.addLast(subNode)
         return subNode
     }

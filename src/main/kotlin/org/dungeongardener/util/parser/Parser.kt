@@ -1,10 +1,7 @@
 package org.dungeongardener.util.parser
 
-import org.dungeongardener.util.parser.GeneratorContext
-import org.dungeongardener.util.parser.ParsingNode
 import org.dungeongardener.util.parser.parsers.GeneratingParser
 import org.dungeongardener.util.parser.parsers.ProcessingParser
-import org.dungeongardener.util.parser.result.ParsingFail
 import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
 
@@ -33,8 +30,8 @@ interface Parser {
         }
         else {
             // Parse failed
-            // TODO: Include info on why
-            return ParsingFail()
+            println(root.errorMessage)
+            return root.errorMessage
         }
     }
 

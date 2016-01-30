@@ -12,6 +12,11 @@ class StringParser(val text: String) : ParserBase() {
         return parserNode.attemptToConsumeText(text)
     }
 
+    override var name: String
+        get() = /*super.name + " " + */ text
+        set(value) {
+            super.name = value
+        }
 }
 
 val String.parser: StringParser

@@ -15,8 +15,16 @@ abstract class ParserBase : Parser {
         val success = doParse(parserNode)
 
         if (!success) {
+            // Update error message
+            if (!parent.errorMessage.hasError()) {
+                parent.errorMessage.update(parserNode)
+            }
+
             // Roll back node for unsuccessful parse
             parent.removeSubNode()
+        }
+        else {
+            parent.errorMessage.clear()
         }
 
         return success
