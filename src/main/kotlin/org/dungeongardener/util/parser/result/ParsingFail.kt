@@ -1,7 +1,7 @@
 package org.dungeongardener.util.parser.result
 
 import org.dungeongardener.util.parser.Parser
-import org.dungeongardener.util.parser.ParsingNode
+import org.dungeongardener.util.parser.ASTNode
 
 /**
  *
@@ -50,7 +50,7 @@ class ParsingFail(val inputName: String = "input") : ParsingResult {
         }
     }
 
-    fun update(failedNode: ParsingNode) {
+    fun update(failedNode: ASTNode) {
         expected = failedNode.parser
         location = failedNode.start
         input = failedNode.input

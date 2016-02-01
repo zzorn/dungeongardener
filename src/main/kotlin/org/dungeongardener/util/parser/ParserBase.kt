@@ -7,16 +7,17 @@ abstract class ParserBase : Parser {
 
     override var name: String = this.javaClass.simpleName
 
-    final override fun parse(parent: ParsingNode): Boolean {
+    final override fun parse(parent: ASTNode): Boolean {
 
         // Check if we have a previously cached entry
         val packRatCache = parent.packRatCache
-        val packRatCacheKey = ParsingNode.PackRatKey(this, parent.end)
+        val packRatCacheKey = ASTNode.PackRatKey(this, parent.end)
         val entry = packRatCache.get(packRatCacheKey)
 
         val success = if (entry != null) {
-            if (entry.parsedNode != null) {
-                parent.addSubNode(entry.parsedNode)
+            val previouslyParsedNode = entry.astNode
+            if (previouslyParsedNode != null) {
+                parent.addSubNode(previouslyParsedNode)
                 true
             }
             else {
@@ -30,15 +31,17 @@ abstract class ParserBase : Parser {
         }
         else {
             // Add null packrat node, for detecting left recursion
-            packRatCache.put(packRatCacheKey, ParsingNode.PackRatEntry(null, parent.end))
+            val cacheEntry = ASTNode.PackRatEntry(null, parent.end)
+            packRatCache.put(packRatCacheKey, cacheEntry)
 
             // Create node for this parser, and add it to the parent
-            val parserNode: ParsingNode = parent.addSubNode(this)
+            val parserNode: ASTNode = parent.addSubNode(this)
 
             // Try to parse with this parser
             if (doParse(parserNode)) {
-                // If the parse succeeded, cache the result
-                packRatCache.put(packRatCacheKey, ParsingNode.PackRatEntry(parserNode, parserNode.end))
+                // If the parse succeeded, update the cache
+                cacheEntry.astNode = parserNode
+                cacheEntry.endPos = parserNode.end
                 true
             }
             else {
@@ -62,7 +65,7 @@ abstract class ParserBase : Parser {
         return success
     }
 
-    abstract fun doParse(parserNode: ParsingNode): Boolean
+    abstract fun doParse(parserNode: ASTNode): Boolean
 
 
 

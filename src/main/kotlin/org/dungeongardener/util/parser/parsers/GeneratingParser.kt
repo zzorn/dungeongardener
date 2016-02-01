@@ -3,7 +3,7 @@ package org.dungeongardener.util.parser.parsers
 import org.dungeongardener.util.parser.GeneratorContext
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.ParserBase
-import org.dungeongardener.util.parser.ParsingNode
+import org.dungeongardener.util.parser.ASTNode
 
 /**
  * Generates result that is pushed on the result stack based on the text matched by the specified parser.
@@ -12,7 +12,7 @@ import org.dungeongardener.util.parser.ParsingNode
  */
 class GeneratingParser(val parser: Parser, val generate: (GeneratorContext) -> Any): ParserBase() {
 
-    override fun doParse(parserNode: ParsingNode): Boolean {
+    override fun doParse(parserNode: ASTNode): Boolean {
 
         // Store the result generator with this node
         parserNode.resultGenerator = generate

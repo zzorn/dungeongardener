@@ -5,23 +5,23 @@ import org.dungeongardener.util.parser.result.ParsingFail
 import java.util.*
 
 /**
- * Used for storing syntax tree data while parsing input.
+ * Used for storing abstract syntax tree data while parsing input.
  */
-class ParsingNode(val input: String,
-                  val parser: Parser? = null,
-                  val start: Int = 0,
-                  var ownLength: Int = 0,
-                  val errorMessage: ParsingFail = ParsingFail(),
-                  val parent: ParsingNode? = null,
-                  val packRatCache: MutableMap<PackRatKey, PackRatEntry> = HashMap()) {
+class ASTNode(val input: String,
+              val parser: Parser? = null,
+              val start: Int = 0,
+              var ownLength: Int = 0,
+              val errorMessage: ParsingFail = ParsingFail(),
+              val parent: ASTNode? = null,
+              val packRatCache: MutableMap<PackRatKey, PackRatEntry> = HashMap()) {
 
     data class PackRatKey(val parser: Parser, val startPos: Int)
-    data class PackRatEntry(val parsedNode: ParsingNode?, val endPos: Int)
+    data class PackRatEntry(var astNode: ASTNode?, var endPos: Int)
 
     var resultGenerator: ((GeneratorContext) -> Any)? = null
     var resultProcessor: ((GeneratorContext) -> Unit)? = null
 
-    private var subNodes: Deque<ParsingNode> = LinkedList()
+    private var subNodes: Deque<ASTNode> = LinkedList()
     private var firstGeneratedResultIndex = 0
     private var lastGeneratedResultIndex = 0
 
@@ -31,12 +31,12 @@ class ParsingNode(val input: String,
     val matchedText: String
         get() = input.substring(start, end)
 
-    fun addSubNode(subNode: ParsingNode) {
+    fun addSubNode(subNode: ASTNode) {
         subNodes.addLast(subNode)
     }
 
-    fun addSubNode(parser: Parser): ParsingNode {
-        val subNode = ParsingNode(input, parser, end, 0, errorMessage, this, packRatCache)
+    fun addSubNode(parser: Parser): ASTNode {
+        val subNode = ASTNode(input, parser, end, 0, errorMessage, this, packRatCache)
         addSubNode(subNode)
         return subNode
     }

@@ -8,7 +8,7 @@ import java.util.*
  */
 class GeneratorContext() {
 
-    lateinit var currentNode: ParsingNode
+    lateinit var currentNode: ASTNode
 
     /**
      * Total text covered by current node

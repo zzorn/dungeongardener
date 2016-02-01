@@ -21,7 +21,7 @@ interface Parser {
     fun parse(inputFile: File) : ParsingResult = parse(inputFile.readText(), inputFile.name)
 
     fun parse(input: String, inputName: String = "input") : ParsingResult {
-        val root = ParsingNode(input, errorMessage = ParsingFail(inputName))
+        val root = ASTNode(input, errorMessage = ParsingFail(inputName))
         if (parse(root)) {
             // DEBUG: println(root)
             // Generate result if parsing was successful
@@ -34,7 +34,7 @@ interface Parser {
         }
     }
 
-    fun parse(parent: ParsingNode): Boolean
+    fun parse(parent: ASTNode): Boolean
 
 
     fun generatesMatchedText(): Parser = GeneratingParser(this, {it.text})

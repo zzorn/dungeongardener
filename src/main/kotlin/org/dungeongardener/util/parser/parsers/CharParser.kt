@@ -2,7 +2,7 @@ package org.dungeongardener.util.parser.parsers
 
 import org.dungeongardener.util.parser.Multiplicity
 import org.dungeongardener.util.parser.ParserBase
-import org.dungeongardener.util.parser.ParsingNode
+import org.dungeongardener.util.parser.ASTNode
 
 /**
  * Some of the specified characters with the specified multiplicity (zero or one, one, zero or more, one or more - defaults to one)
@@ -20,7 +20,7 @@ class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multipl
         return CharParser(acceptedCharacters, multiplicity, !negated)
     }
 
-    override fun doParse(parserNode: ParsingNode): Boolean {
+    override fun doParse(parserNode: ASTNode): Boolean {
 
         return when (multiplicity) {
             Multiplicity.OPTIONAL -> {
@@ -41,7 +41,7 @@ class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multipl
 
     }
 
-    private fun consumeValidChar(parserNode: ParsingNode): Boolean {
+    private fun consumeValidChar(parserNode: ASTNode): Boolean {
         if (nextCharIsValid(parserNode)) {
             parserNode.consumeInput(1)
             return true
@@ -49,7 +49,7 @@ class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multipl
         else return false
     }
 
-    private fun consumeValidChars(parserNode: ParsingNode): Boolean {
+    private fun consumeValidChars(parserNode: ASTNode): Boolean {
         var offset = 0
         while (nextCharIsValid(parserNode, offset)) {
             offset++
@@ -62,7 +62,7 @@ class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multipl
         else return false
     }
 
-    private fun nextCharIsValid(parserNode: ParsingNode, offset: Int = 0): Boolean {
+    private fun nextCharIsValid(parserNode: ASTNode, offset: Int = 0): Boolean {
         val nextChar = parserNode.nextInputChar(offset)
         return nextChar != null &&
                 (if (negated) !acceptedCharacters.contains(nextChar)

@@ -2,7 +2,7 @@ package org.dungeongardener.util.parser.parsers
 
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.ParserBase
-import org.dungeongardener.util.parser.ParsingNode
+import org.dungeongardener.util.parser.ASTNode
 
 /**
  * Applies the first of the specified parsers that matches, fails if none of them matches.
@@ -11,7 +11,7 @@ class AnyOf(vararg val parsers: Parser) : ParserBase() {
 
     constructor(vararg texts: String) : this(*(texts.map { StringParser(it) }).toTypedArray())
 
-    override fun doParse(parserNode: ParsingNode): Boolean {
+    override fun doParse(parserNode: ASTNode): Boolean {
         for (parser in parsers) {
             if (parser.parse(parserNode)) {
                 return true

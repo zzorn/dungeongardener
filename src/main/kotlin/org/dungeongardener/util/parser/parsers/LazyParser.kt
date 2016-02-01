@@ -1,7 +1,7 @@
 package org.dungeongardener.util.parser.parsers
 
 import org.dungeongardener.util.parser.Parser
-import org.dungeongardener.util.parser.ParsingNode
+import org.dungeongardener.util.parser.ASTNode
 
 /**
  * Delegates to a parser that will be assigned later.
@@ -9,7 +9,7 @@ import org.dungeongardener.util.parser.ParsingNode
 class LazyParser : Parser {
     lateinit var parser: Parser
 
-    override fun parse(parent: ParsingNode): Boolean {
+    override fun parse(parent: ASTNode): Boolean {
         return parser.parse(parent)
     }
 
