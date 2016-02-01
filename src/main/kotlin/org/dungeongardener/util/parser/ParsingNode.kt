@@ -12,22 +12,32 @@ class ParsingNode(val input: String,
                   val start: Int = 0,
                   var ownLength: Int = 0,
                   val errorMessage: ParsingFail = ParsingFail(),
-                  val parent: ParsingNode? = null) {
+                  val parent: ParsingNode? = null,
+                  val packRatCache: MutableMap<PackRatKey, PackRatEntry> = HashMap()) {
+
+    data class PackRatKey(val parser: Parser, val startPos: Int)
+    data class PackRatEntry(val parsedNode: ParsingNode?, val endPos: Int)
 
     var resultGenerator: ((GeneratorContext) -> Any)? = null
     var resultProcessor: ((GeneratorContext) -> Unit)? = null
 
     private var subNodes: Deque<ParsingNode> = LinkedList()
+    private var firstGeneratedResultIndex = 0
+    private var lastGeneratedResultIndex = 0
 
     val end: Int
-        get() = Math.max(start + ownLength, if (subNodes.isNotEmpty()) subNodes.last.end else start)
+        get() = Math.max(start + ownLength, if (subNodes.isNotEmpty()) subNodes.last.end else (start + ownLength))
 
     val matchedText: String
         get() = input.substring(start, end)
 
-    fun addSubNode(parser: Parser): ParsingNode {
-        val subNode = ParsingNode(input, parser, end, 0, errorMessage, this)
+    fun addSubNode(subNode: ParsingNode) {
         subNodes.addLast(subNode)
+    }
+
+    fun addSubNode(parser: Parser): ParsingNode {
+        val subNode = ParsingNode(input, parser, end, 0, errorMessage, this, packRatCache)
+        addSubNode(subNode)
         return subNode
     }
 
@@ -83,11 +93,22 @@ class ParsingNode(val input: String,
         return ParseSuccess(generatorContext.results)
     }
 
+    fun getResultsGeneratedInThisNode(allResults: List<Any>): List<Any> {
+        if (lastGeneratedResultIndex <= firstGeneratedResultIndex) return Collections.emptyList()
+        else return allResults.subList(firstGeneratedResultIndex, lastGeneratedResultIndex)
+    }
+
     protected fun generateResults(context: GeneratorContext) {
+
+        context.currentNode = this
+        firstGeneratedResultIndex = context.results.size
+
         // Generate results for sub-nodes
         for (subNode in subNodes) {
             subNode.generateResults(context)
         }
+
+        lastGeneratedResultIndex = context.results.size
 
         // Generate result for this node
         val generator = resultGenerator
@@ -95,6 +116,8 @@ class ParsingNode(val input: String,
             context.text = matchedText
             context.push(generator(context))
         }
+
+        lastGeneratedResultIndex = context.results.size
 
         // Process result for this node
         val processor = resultProcessor
@@ -127,6 +150,14 @@ class ParsingNode(val input: String,
             for (subNode in subNodes) {
                 subNode.toString(s, indent + 1)
             }
+        }
+    }
+
+    fun removeCurrentNodeResults(results: LinkedList<Any>) {
+        var count = lastGeneratedResultIndex - firstGeneratedResultIndex
+        while(count > 0) {
+            results.removeAt(firstGeneratedResultIndex)
+            count--
         }
     }
 

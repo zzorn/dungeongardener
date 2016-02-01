@@ -37,6 +37,7 @@ interface Parser {
     fun parse(parent: ParsingNode): Boolean
 
 
+    fun generatesMatchedText(): Parser = GeneratingParser(this, {it.text})
     infix fun generates(generator: (GeneratorContext) -> Any): Parser = GeneratingParser(this, generator)
     infix fun process(processor: (GeneratorContext) -> Unit): Parser = ProcessingParser(this, processor)
 

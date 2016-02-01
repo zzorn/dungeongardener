@@ -23,4 +23,4 @@ class StringParser(val text: String, val ignoreCase: Boolean = false) : ParserBa
 val String.parser: StringParser
     get() = StringParser(this)
 
-operator fun String.unaryMinus(): StringParser = StringParser(this)
+operator fun String.unaryPlus(): StringParser = StringParser(this)

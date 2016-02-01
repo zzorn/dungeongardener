@@ -4,6 +4,7 @@ import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.parsers.*
 import org.dungeongardener.util.parser.result.ParseSuccess
+import org.dungeongardener.util.parser.result.ParsingFail
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -142,7 +143,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration2() {
-        val parser = Sequence("foo".parser, "bar".parser) generates {it.text }
+        val parser = Sequence("foo".parser, "bar".parser) generates { println("testtext: '${it.text}' "); it.text }
 
         checkResult(parser, "foobarbar", "foobar")
         checkParsing(parser, false, "foo")
@@ -231,10 +232,10 @@ class TestParser {
 
         val parens =
                 Sequence(
-                        -"(",
+                        "(".unaryPlus(),
                         whitespace,
                         expression,
-                        -")",
+                        ")".unaryPlus(),
                         whitespace
                 ).named("parens")
 
@@ -244,7 +245,7 @@ class TestParser {
                 term,
                 Optional(
                         Sequence(
-                        -"+",
+                                "+".unaryPlus(),
                         whitespace,
                         term).generates { it.pop<Int>() + it.pop<Int>() }
                 ),
@@ -290,12 +291,52 @@ class TestParser {
     }
 
 
+    @Test
+    fun testLeftRecursiveParsing() {
+        val parser = LazyParser()
+        parser.parser = Sequence(parser, +"a").generatesMatchedText()
+
+        checkParsing(parser, false, "")
+        checkParsing(parser, false, "b")
+        checkResultWithSameReturn(parser, "a")
+        checkResultWithSameReturn(parser, "aa")
+        checkResultWithSameReturn(parser, "aaaaaaaaaaaaaaa")
+        checkParsing(parser, true, "a")
+        checkParsing(parser, true, "aaaa")
+        checkParsing(parser, false, "b")
+        checkParsing(parser, false, "baaa")
+        checkParsing(parser, false, " aa")
+
+    }
+
+    @Test
+    fun testIndirectLeftRecursiveParsing() {
+        val parser = LazyParser()
+        val parser2 = Sequence(parser, +"b")
+        val parser3 = Sequence(parser2, +"c")
+        parser.parser = Sequence(parser3, +"a").generatesMatchedText()
+
+        checkResultWithSameReturn(parser, "cba")
+        checkResultWithSameReturn(parser, "cbacba")
+        checkResultWithSameReturn(parser, "cbacbacbacba")
+        checkParsing(parser, true, "cba")
+        checkParsing(parser, true, "cbacbacba")
+        checkParsing(parser, false, "abc")
+        checkParsing(parser, false, "c")
+        checkParsing(parser, false, "cb")
+        checkParsing(parser, false, "cbba")
+        checkParsing(parser, false, " cba")
+        checkParsing(parser, false, "abba")
+
+    }
+
     private fun checkParsing(parser: Parser, shouldSucceed: Boolean, testString: String) {
         assertEquals(shouldSucceed, parser.parse(testString, "parsing test").success)
     }
 
     private fun checkResult(parser: Parser, testString: String, vararg expectedResult: Any) {
         val result = parser.parse(testString, "parsing test")
+        if (result is ParsingFail) println("Failed: $result")
         assertEquals(true, result.success)
         assertEquals(expectedResult.toList(), (result as ParseSuccess).results.toList())
     }
