@@ -1,5 +1,6 @@
 package org.dungeongardener
 
+import org.dungeongardener.util.parser.Multiplicity.ONE_OR_MORE
 import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.parsers.*
@@ -294,7 +295,7 @@ class TestParser {
     fun testLeftRecursiveParsing() {
         val p = LazyParser()
         p.parser = Sequence(Optional(p), +"a")
-        val parser = p.generatesMatchedText()
+        val parser = Sequence(p, EndOfInput()).generatesMatchedText()
 
         checkParsing(parser, false, "")
         checkParsing(parser, false, "b")
@@ -311,23 +312,24 @@ class TestParser {
 
     @Test
     fun testIndirectLeftRecursiveParsing() {
-        val parser1 = LazyParser()
-        val parser2 = Sequence(Optional(parser1), +"c")
-        val parser3 = Sequence(parser2, +"b")
-        parser1.parser = Sequence(parser3, +"a")
-        val parser = parser1.generatesMatchedText()
+        val num = CharParser(ONE_OR_MORE, '0'..'9')
+        val x = LazyParser()
+        val expr = LazyParser()
+        expr.parser = AnyOf(Sequence(x, +"-", num), num)
+        x.parser = expr
+        val parser = Sequence(expr, EndOfInput()).generatesMatchedText()
 
-        checkResultWithSameReturn(parser, "cba")
-        checkResultWithSameReturn(parser, "cbacba")
-        checkResultWithSameReturn(parser, "cbacbacbacba")
-        checkParsing(parser, true, "cba")
-        checkParsing(parser, true, "cbacbacba")
-        checkParsing(parser, false, "abc")
-        checkParsing(parser, false, "c")
-        checkParsing(parser, false, "cb")
-        checkParsing(parser, false, "cbba")
-        checkParsing(parser, false, " cba")
-        checkParsing(parser, false, "abba")
+        checkResultWithSameReturn(parser, "34")
+        checkResultWithSameReturn(parser, "2-1")
+        checkResultWithSameReturn(parser, "3-2-1")
+        checkResultWithSameReturn(parser, "213-323-22-112333-0023")
+        checkParsing(parser, false, "-23")
+        checkParsing(parser, false, "asdf")
+        checkParsing(parser, false, "123-")
+        checkParsing(parser, false, "12--12")
+        checkParsing(parser, false, "-12-12-")
+        checkParsing(parser, false, "-12-")
+        checkParsing(parser, false, "12+12")
 
     }
 
@@ -335,7 +337,7 @@ class TestParser {
     fun testRightRecursiveParsing() {
         val p = LazyParser()
         p.parser = Sequence(+"a", Optional(p))
-        val parser = p.generatesMatchedText()
+        val parser = Sequence(p, EndOfInput()).generatesMatchedText()
 
         checkParsing(parser, false, "")
         checkParsing(parser, false, "b")
@@ -352,21 +354,24 @@ class TestParser {
 
     @Test
     fun testIndirectRightRecursiveParsing() {
-        val parser1 = LazyParser()
-        val parser2 = Sequence(+"c", Optional(parser1))
-        val parser3 = Sequence(+"b", parser2)
-        parser1.parser = Sequence(+"a", parser3)
-        val parser = parser1.generatesMatchedText()
+        val num = CharParser(ONE_OR_MORE, '0'..'9')
+        val x = LazyParser()
+        val expr = LazyParser()
+        expr.parser = AnyOf(Sequence(num, +"-", x), num)
+        x.parser = expr
+        val parser = Sequence(expr, EndOfInput()).generatesMatchedText()
 
-        checkResultWithSameReturn(parser, "abc")
-        checkResultWithSameReturn(parser, "abcabc")
-        checkResultWithSameReturn(parser, "abcabcabcabc")
-        checkParsing(parser, true, "abc")
-        checkParsing(parser, false, "cba")
-        checkParsing(parser, false, "a")
-        checkParsing(parser, false, "ab")
-        checkParsing(parser, false, "aabc")
-        checkParsing(parser, false, "abba")
+        checkResultWithSameReturn(parser, "34")
+        checkResultWithSameReturn(parser, "2-1")
+        checkResultWithSameReturn(parser, "3-2-1")
+        checkResultWithSameReturn(parser, "213-323-22-112333-0023")
+        checkParsing(parser, false, "-23")
+        checkParsing(parser, false, "asdf")
+        checkParsing(parser, false, "123-")
+        checkParsing(parser, false, "12--12")
+        checkParsing(parser, false, "-12-12-")
+        checkParsing(parser, false, "-12-")
+        checkParsing(parser, false, "12+12")
 
     }
 
