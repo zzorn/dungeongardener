@@ -16,7 +16,7 @@ class ASTNode(val input: String,
               val packRatCache: MutableMap<PackRatKey, PackRatEntry> = HashMap()) {
 
     data class PackRatKey(val parser: Parser, val startPos: Int)
-    data class PackRatEntry(var astNode: ASTNode?, var endPos: Int)
+    data class PackRatEntry(var astNode: ASTNode?, var endPos: Int, var leftRecursionDetected: Boolean = false)
 
     var resultGenerator: ((GeneratorContext) -> Any)? = null
     var resultProcessor: ((GeneratorContext) -> Unit)? = null

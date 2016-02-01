@@ -22,9 +22,13 @@ abstract class ParserBase : Parser {
             }
             else {
                 // Update error message for left recursion
-                //if (!parent.errorMessage.hasError()) {
+                /*
+                if (!parent.errorMessage.hasError()) {
                     parent.errorMessage.leftRecursionError(this, parent.end, parent.input)
-                //}
+                }
+                */
+
+                entry.leftRecursionDetected = true
 
                 false
             }
@@ -42,6 +46,12 @@ abstract class ParserBase : Parser {
                 // If the parse succeeded, update the cache
                 cacheEntry.astNode = parserNode
                 cacheEntry.endPos = parserNode.end
+
+                // Check for additional left recursion entries
+                if (cacheEntry.leftRecursionDetected) {
+                    growLeftRecursion(parent, cacheEntry)
+                }
+
                 true
             }
             else {
@@ -63,6 +73,21 @@ abstract class ParserBase : Parser {
         }
 
         return success
+    }
+
+    private fun growLeftRecursion(parent: ASTNode, cacheEntry: ASTNode.PackRatEntry) {
+        // Parse node again
+        while (true) {
+            val previousEnd = parent.end
+            val astNode: ASTNode = parent.addSubNode(this)
+            if (doParse(astNode) && parent.end > previousEnd) {
+                cacheEntry.astNode = astNode
+                cacheEntry.endPos = parent.end
+            }
+            else {
+                break
+            }
+        }
     }
 
     abstract fun doParse(parserNode: ASTNode): Boolean
