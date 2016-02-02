@@ -1,7 +1,5 @@
 package org.dungeongardener.util.parser
 
-import org.dungeongardener.util.parser.ParsingCaches.*
-
 /**
  * Base class for parsers
  */
@@ -11,10 +9,16 @@ abstract class ParserBase : Parser {
 
     final override fun parse(parent: ASTNode): Boolean {
 
-        val node = applyRule(parent)
-        return node != null
+//        val node = applyRule(parent)
+    //    return node != null
+        throw UnsupportedOperationException("TODO")
     }
 
+
+
+
+
+    /*
     private final fun applyRule(parent: ASTNode): ASTNode? {
 
         val caches = parent.caches
@@ -164,6 +168,6 @@ abstract class ParserBase : Parser {
 
     abstract fun doParse(parserNode: ASTNode): Boolean
 
-
+*/
 
 }
