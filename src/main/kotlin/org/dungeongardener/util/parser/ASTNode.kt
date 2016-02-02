@@ -13,10 +13,8 @@ class ASTNode(val input: String,
               var ownLength: Int = 0,
               val errorMessage: ParsingFail = ParsingFail(),
               val parent: ASTNode? = null,
-              val packRatCache: MutableMap<PackRatKey, PackRatEntry> = HashMap()) {
+              val caches: ParsingCaches = ParsingCaches()) {
 
-    data class PackRatKey(val parser: Parser, val startPos: Int)
-    data class PackRatEntry(var astNode: ASTNode?, var endPos: Int, var leftRecursionDetected: Boolean = false)
 
     var resultGenerator: ((GeneratorContext) -> Any)? = null
     var resultProcessor: ((GeneratorContext) -> Unit)? = null
@@ -36,10 +34,15 @@ class ASTNode(val input: String,
     }
 
     fun addSubNode(parser: Parser): ASTNode {
-        val subNode = ASTNode(input, parser, end, 0, errorMessage, this, packRatCache)
+        val subNode = createSubNode(parser)
         addSubNode(subNode)
         return subNode
     }
+
+    /**
+     * This node is not yet added to the parent
+     */
+    fun createSubNode(parser: Parser) = ASTNode(input, parser, end, 0, errorMessage, this, caches)
 
     fun removeSubNode() {
         subNodes.removeLast()
@@ -160,6 +163,5 @@ class ASTNode(val input: String,
             count--
         }
     }
-
 
 }

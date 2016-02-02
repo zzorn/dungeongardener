@@ -1,5 +1,7 @@
 package org.dungeongardener.util.parser
 
+import org.dungeongardener.util.parser.ParsingCaches.*
+
 /**
  * Base class for parsers
  */
@@ -9,85 +11,155 @@ abstract class ParserBase : Parser {
 
     final override fun parse(parent: ASTNode): Boolean {
 
+        val node = applyRule(parent)
+        return node != null
+    }
+
+    private final fun applyRule(parent: ASTNode): ASTNode? {
+
+        val caches = parent.caches
+
         // Check if we have a previously cached entry
-        val packRatCache = parent.packRatCache
-        val packRatCacheKey = ASTNode.PackRatKey(this, parent.end)
-        val entry = packRatCache.get(packRatCacheKey)
+        val pos = parent.end
+        val packRatCacheKey = PackRatKey(this, pos)
+        val entry = recall(parent, this, pos, caches)
 
-        val success = if (entry != null) {
-            val previouslyParsedNode = entry.astNode
-            if (previouslyParsedNode != null) {
-                parent.addSubNode(previouslyParsedNode)
-                true
-            }
-            else {
-                // Update error message for left recursion
-                /*
-                if (!parent.errorMessage.hasError()) {
-                    parent.errorMessage.leftRecursionError(this, parent.end, parent.input)
-                }
-                */
+        if (entry == null) {
+            // Create a new LR and push it onto the rule invocation stack.
+            val lr = LeftRecursion(null, this, null)
+            caches.leftRecursionStack.push(lr)
 
-                entry.leftRecursionDetected = true
+            // Memoize lr
+            val newCacheEntry = PackRatEntry(null, lr)
+            caches.packRatCache.put(packRatCacheKey, newCacheEntry)
 
-                false
+            // Try to parse with this parser
+            val ans = eval(parent)
+
+            // Pop lr off the rule invocation stack.
+            caches.leftRecursionStack.pop()
+
+            if (lr.head != null) {
+                lr.seed = ans
+                return leftRecursionAnswer(this, pos, newCacheEntry, parent, caches)
+            } else {
+                newCacheEntry.setAns(ans)
+                return ans
             }
         }
         else {
-            // Add null packrat node, for detecting left recursion
-            val cacheEntry = ASTNode.PackRatEntry(null, parent.end)
-            packRatCache.put(packRatCacheKey, cacheEntry)
-
-            // Create node for this parser, and add it to the parent
-            val parserNode: ASTNode = parent.addSubNode(this)
-
-            // Try to parse with this parser
-            if (doParse(parserNode)) {
-                // If the parse succeeded, update the cache
-                cacheEntry.astNode = parserNode
-                cacheEntry.endPos = parserNode.end
-
-                // Check for additional left recursion entries
-                if (cacheEntry.leftRecursionDetected) {
-                    growLeftRecursion(parent, cacheEntry)
-                }
-
-                true
+            val lr = entry.lr
+            if (lr != null) {
+                setupLeftRecursion(this, lr, caches)
+                return lr.seed
             }
             else {
-                // Update error message
-                if (!parent.errorMessage.hasError()) {
-                    parent.errorMessage.update(parserNode)
-                }
-
-                // Roll back node for unsuccessful parse
-                parent.removeSubNode()
-
-                false
+                return entry.node
             }
         }
-
-        if (success) {
-            // Clear error if we succeeded
-            parent.errorMessage.clear()
-        }
-
-        return success
     }
 
-    private fun growLeftRecursion(parent: ASTNode, cacheEntry: ASTNode.PackRatEntry) {
+    private fun eval(parent: ASTNode): ASTNode? {
+        // Create node for this parser
+        val parserNode: ASTNode = parent.addSubNode(this)
+
+        // Try to parse with this parser
+        if (doParse(parserNode)) {
+            return parserNode
+        }
+        else {
+            // Remove failed node from parent
+            parent.removeSubNode()
+
+            // Update error message
+            if (!parent.errorMessage.hasError()) {
+                parent.errorMessage.update(parserNode)
+            }
+
+            return null
+        }
+    }
+
+    private fun growLeftRecursion(pos: Int, parent: ASTNode, cacheEntry: PackRatEntry, head: HeadEntry, caches: ParsingCaches): ASTNode? {
+
+        caches.leftRecursionHeads.put(pos, head)
+
         // Parse node again
         while (true) {
-            val previousEnd = parent.end
-            val astNode: ASTNode = parent.addSubNode(this)
-            if (doParse(astNode) && parent.end > previousEnd) {
-                cacheEntry.astNode = astNode
-                cacheEntry.endPos = parent.end
+
+            head.evalSet.clear()
+            head.evalSet.addAll(head.involvedSet)
+
+            val oldEnd = parent.end
+            val astNode = eval(parent)
+            if (astNode != null && parent.end > oldEnd) {
+                cacheEntry.setAns(astNode)
             }
             else {
                 break
             }
         }
+
+        caches.leftRecursionHeads.remove(pos)
+
+        return cacheEntry.node
+    }
+
+    private fun setupLeftRecursion(rule: Parser, leftRecursion: LeftRecursion, caches: ParsingCaches) {
+        var lrHead = leftRecursion.head
+        if (lrHead == null) {
+            lrHead = HeadEntry(rule)
+            leftRecursion.head = lrHead
+        }
+
+        for (s in caches.leftRecursionStack) {
+            if (s.head != lrHead) {
+                s.head = lrHead
+                lrHead.involvedSet.add(rule)
+            }
+            else {
+                break
+            }
+        }
+    }
+
+    private fun leftRecursionAnswer(rule: Parser, pos: Int, packRatEntry: PackRatEntry, parent: ASTNode, caches: ParsingCaches): ASTNode? {
+        val head = packRatEntry.lr!!.head!!
+        val seed = packRatEntry.lr!!.seed
+        if (head.rule != rule) {
+            return seed
+        }
+        else {
+            packRatEntry.setAns(seed)
+            if (seed == null) return null
+            else return growLeftRecursion(pos, parent, packRatEntry, head, caches)
+        }
+    }
+
+
+    private fun recall(parent: ASTNode, rule: Parser, pos: Int, caches: ParsingCaches): PackRatEntry? {
+        val packRatEntry = caches.packRatCache.get(PackRatKey(rule, pos))
+        val head = caches.leftRecursionHeads.get(pos)
+
+        // If not growing a seed parse, just return what is stored in the memo table
+        if (head == null) {
+            return packRatEntry
+        }
+
+        // Do not evaluate any rule that is not involved in this left recursion.
+        if (packRatEntry == null && !(head.involvedSet.contains(rule) || rule == head.rule)) {
+            return PackRatEntry(null, null)
+        }
+
+        // Allow involved rules to be evaluated, but only once, during a seed-growing iteration.
+        if (head.evalSet.contains(rule)) {
+            head.evalSet.remove(rule)
+
+            val astNode: ASTNode? = eval(parent)
+            packRatEntry!!.setAns(astNode)
+        }
+
+        return packRatEntry
     }
 
     abstract fun doParse(parserNode: ASTNode): Boolean

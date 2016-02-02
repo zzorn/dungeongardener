@@ -311,6 +311,25 @@ class TestParser {
     }
 
     @Test
+    fun testRightRecursiveParsing() {
+        val p = LazyParser()
+        p.parser = Sequence(+"a", Optional(p))
+        val parser = Sequence(p, EndOfInput()).generatesMatchedText()
+
+        checkParsing(parser, false, "")
+        checkParsing(parser, false, "b")
+        checkResultWithSameReturn(parser, "a")
+        checkResultWithSameReturn(parser, "aa")
+        checkResultWithSameReturn(parser, "aaaaaaaaaaaaaaa")
+        checkParsing(parser, true, "a")
+        checkParsing(parser, true, "aaaa")
+        checkParsing(parser, false, "b")
+        checkParsing(parser, false, "baaa")
+        checkParsing(parser, false, " aa")
+    }
+
+
+    @Test
     fun testIndirectLeftRecursiveParsing() {
         val num = CharParser(ONE_OR_MORE, '0'..'9')
         val x = LazyParser()
@@ -330,27 +349,8 @@ class TestParser {
         checkParsing(parser, false, "-12-12-")
         checkParsing(parser, false, "-12-")
         checkParsing(parser, false, "12+12")
-
     }
 
-    @Test
-    fun testRightRecursiveParsing() {
-        val p = LazyParser()
-        p.parser = Sequence(+"a", Optional(p))
-        val parser = Sequence(p, EndOfInput()).generatesMatchedText()
-
-        checkParsing(parser, false, "")
-        checkParsing(parser, false, "b")
-        checkResultWithSameReturn(parser, "a")
-        checkResultWithSameReturn(parser, "aa")
-        checkResultWithSameReturn(parser, "aaaaaaaaaaaaaaa")
-        checkParsing(parser, true, "a")
-        checkParsing(parser, true, "aaaa")
-        checkParsing(parser, false, "b")
-        checkParsing(parser, false, "baaa")
-        checkParsing(parser, false, " aa")
-
-    }
 
     @Test
     fun testIndirectRightRecursiveParsing() {
