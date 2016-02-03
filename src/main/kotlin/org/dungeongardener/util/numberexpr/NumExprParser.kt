@@ -7,7 +7,7 @@ import org.dungeongardener.util.parser.ParserHelper
 class NumExprParser() : ParserHelper<NumExpr>() {
 
     val comment = parser("comment") {
-        +"#" + !zeroOrMoreChars("\n") + "\n"
+        +"#" + zeroOrMoreCharsExcept("\n") + "\n"
     }
 
     val ws = parser("whitespace") {

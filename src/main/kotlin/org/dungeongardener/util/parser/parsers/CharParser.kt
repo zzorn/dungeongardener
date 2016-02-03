@@ -69,6 +69,5 @@ class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multipl
                  else          acceptedCharacters.contains(nextChar))
     }
 
-    operator fun not(): CharParser = anyExcept()
 
 }

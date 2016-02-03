@@ -71,10 +71,16 @@ abstract class ParserHelper<T> {
     protected fun char(chars: String): CharParser = CharParser(chars)
     protected fun oneOrMoreChars(chars: String): CharParser = CharParser(chars, ONE_OR_MORE)
     protected fun zeroOrMoreChars(chars: String): CharParser = CharParser(chars, ZERO_OR_MORE)
+    protected fun charExcept(chars: String): CharParser = CharParser(chars).anyExcept()
+    protected fun oneOrMoreCharsExcept(chars: String): CharParser = CharParser(chars, ONE_OR_MORE).anyExcept()
+    protected fun zeroOrMoreCharsExcept(chars: String): CharParser = CharParser(chars, ZERO_OR_MORE).anyExcept()
 
     protected fun char(vararg chars: CharRange): CharParser = CharParser(*chars)
     protected fun oneOrMoreChars(vararg chars: CharRange): CharParser = CharParser(ONE_OR_MORE, *chars)
     protected fun zeroOrMoreChars(vararg chars: CharRange): CharParser = CharParser(ZERO_OR_MORE, *chars)
+    protected fun charExcept(vararg chars: CharRange): CharParser = CharParser(*chars).anyExcept()
+    protected fun oneOrMoreCharsExcept(vararg chars: CharRange): CharParser = CharParser(ONE_OR_MORE, *chars).anyExcept()
+    protected fun zeroOrMoreCharsExcept(vararg chars: CharRange): CharParser = CharParser(ZERO_OR_MORE, *chars).anyExcept()
 
     protected val autoMatch: AutoMatch
         get() = AutoMatch()
