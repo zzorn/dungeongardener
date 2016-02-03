@@ -35,6 +35,7 @@ abstract class Language<T> {
      */
     fun <T>parseFirst(inputFile: File, debugOutput: Boolean = false) : T = parser.parseFirst(inputFile, debugOutput = debugOutput)
 
+    // TODO: Delay parser initialization until first time parse is called.  That way various input parameters etc can be used.
     protected fun <P : Parser> parser(name: String? = null, parserFunc: () -> P): P {
         val parser = parserFunc()
 
