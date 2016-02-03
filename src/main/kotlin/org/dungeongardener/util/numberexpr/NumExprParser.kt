@@ -1,10 +1,10 @@
 package org.dungeongardener.util.numberexpr
 
 import org.dungeongardener.util.parser.Parser
-import org.dungeongardener.util.parser.ParserHelper
+import org.dungeongardener.util.parser.Language
 
 
-class NumExprParser() : ParserHelper<NumExpr>() {
+class NumExprParser() : Language<NumExpr>() {
 
     val comment = parser("comment") {
         +"#" + zeroOrMoreCharsExcept("\n") + "\n"

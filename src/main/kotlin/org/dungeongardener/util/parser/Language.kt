@@ -7,9 +7,9 @@ import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
 
 /**
- * Base class for parsers, provides utility functions.
+ * Base class for language definitions, provides utility functions.
  */
-abstract class ParserHelper<T> {
+abstract class Language<T> {
 
     abstract val parser: Parser
 
