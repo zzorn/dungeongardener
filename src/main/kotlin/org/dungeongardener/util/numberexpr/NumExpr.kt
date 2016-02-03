@@ -1,4 +1,4 @@
-package org.dungeongardener.util.randomnumber
+package org.dungeongardener.util.numberexpr
 
 /**
  * Represents a number calculated using some expression.

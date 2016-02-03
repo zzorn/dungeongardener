@@ -1,4 +1,4 @@
-package org.dungeongardener.util.randomnumber
+package org.dungeongardener.util.numberexpr
 
 import org.flowutils.Symbol
 import org.flowutils.random.RandomSequence

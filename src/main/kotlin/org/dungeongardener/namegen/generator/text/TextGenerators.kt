@@ -8,8 +8,8 @@ import org.dungeongardener.util.parser.Multiplicity.ONE_OR_MORE
 import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.parsers.*
 import org.dungeongardener.util.parser.result.ParseSuccess
-import org.dungeongardener.util.randomnumber.NumContext
-import org.dungeongardener.util.randomnumber.SimpleNumContext
+import org.dungeongardener.util.numberexpr.NumContext
+import org.dungeongardener.util.numberexpr.SimpleNumContext
 import org.flowutils.Check
 import java.io.File
 import java.util.*

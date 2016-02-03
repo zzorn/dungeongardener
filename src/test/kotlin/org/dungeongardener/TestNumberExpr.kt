@@ -1,6 +1,6 @@
 package org.dungeongardener
 
-//import org.dungeongardener.util.randomnumber.NumExprParser
+//import org.dungeongardener.util.numberexpr.NumExprParser
 import org.junit.Test
 
 /**

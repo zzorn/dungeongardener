@@ -2,7 +2,7 @@ package org.dungeongardener.namegen
 
 import org.dungeongardener.namegen.generator.ContentBuilder
 import org.dungeongardener.namegen.generator.nodes.GeneratorNode
-import org.dungeongardener.util.randomnumber.NumContext
+import org.dungeongardener.util.numberexpr.NumContext
 import org.flowutils.random.RandomSequence
 import org.flowutils.random.XorShift
 
