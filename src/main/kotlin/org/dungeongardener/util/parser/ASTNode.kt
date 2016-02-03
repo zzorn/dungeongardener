@@ -97,6 +97,18 @@ class ASTNode(val input: String,
         return ParseSuccess(generatorContext.results)
     }
 
+    /**
+     * Returns single result, throws exception if fail
+     */
+    fun generateResult(): Any? {
+        if (errorMessage.hasError()) throw ParsingError(errorMessage.toString())
+
+        val generatorContext = GeneratorContext(debugOutput)
+        generateResults(generatorContext)
+        if (generatorContext.results.isEmpty()) throw ParsingError("No result")
+        return generatorContext.results.getFirst()
+    }
+
     fun getResultsGeneratedInThisNode(allResults: List<Any>): List<Any> {
         if (lastGeneratedResultIndex <= firstGeneratedResultIndex) return Collections.emptyList()
         else return allResults.subList(firstGeneratedResultIndex, lastGeneratedResultIndex)

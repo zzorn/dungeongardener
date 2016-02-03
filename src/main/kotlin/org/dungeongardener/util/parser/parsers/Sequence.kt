@@ -1,13 +1,13 @@
 package org.dungeongardener.util.parser.parsers
 
+import org.dungeongardener.util.parser.ASTNode
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.ParserBase
-import org.dungeongardener.util.parser.ASTNode
 
 /**
  *
  */
-class Sequence(vararg val parsers: Parser) : ParserBase() {
+class Sequence(vararg var parsers: Parser) : ParserBase() {
 
     constructor(vararg texts: String) : this(*(texts.map { StringParser(it) }).toTypedArray())
 
@@ -21,4 +21,6 @@ class Sequence(vararg val parsers: Parser) : ParserBase() {
 
         return true
     }
+
+
 }

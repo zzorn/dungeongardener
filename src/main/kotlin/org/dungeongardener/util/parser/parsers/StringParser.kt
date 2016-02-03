@@ -1,7 +1,8 @@
 package org.dungeongardener.util.parser.parsers
 
-import org.dungeongardener.util.parser.ParserBase
 import org.dungeongardener.util.parser.ASTNode
+import org.dungeongardener.util.parser.Parser
+import org.dungeongardener.util.parser.ParserBase
 
 /**
  * Matches the specified string, succeeds if the string is found at this location, fails if not.
@@ -24,3 +25,4 @@ val String.parser: StringParser
     get() = StringParser(this)
 
 operator fun String.unaryPlus(): StringParser = StringParser(this)
+operator fun String.plus(parser: Parser): Sequence = Sequence(StringParser(this), parser)

@@ -1,8 +1,8 @@
 package org.dungeongardener.util.parser.parsers
 
+import org.dungeongardener.util.parser.ASTNode
 import org.dungeongardener.util.parser.Multiplicity
 import org.dungeongardener.util.parser.ParserBase
-import org.dungeongardener.util.parser.ASTNode
 
 /**
  * Some of the specified characters with the specified multiplicity (zero or one, one, zero or more, one or more - defaults to one)
@@ -68,5 +68,7 @@ class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multipl
                 (if (negated) !acceptedCharacters.contains(nextChar)
                  else          acceptedCharacters.contains(nextChar))
     }
+
+    operator fun not(): CharParser = anyExcept()
 
 }

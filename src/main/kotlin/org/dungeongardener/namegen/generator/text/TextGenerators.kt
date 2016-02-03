@@ -4,12 +4,12 @@ import org.dungeongardener.namegen.GeneratorContext
 import org.dungeongardener.namegen.WeightedMap
 import org.dungeongardener.namegen.generator.ContentBuilder
 import org.dungeongardener.namegen.generator.nodes.*
+import org.dungeongardener.util.numberexpr.NumContext
+import org.dungeongardener.util.numberexpr.SimpleNumContext
 import org.dungeongardener.util.parser.Multiplicity.ONE_OR_MORE
 import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.parsers.*
 import org.dungeongardener.util.parser.result.ParseSuccess
-import org.dungeongardener.util.numberexpr.NumContext
-import org.dungeongardener.util.numberexpr.SimpleNumContext
 import org.flowutils.Check
 import java.io.File
 import java.util.*
@@ -51,7 +51,7 @@ class TextGenerators(val markovText: String? = null): GeneratorContext<String, S
         // Parse the generator markup
 
         // Primitives
-        val comment = Sequence(+"#", CharParser("\n", ZERO_OR_MORE, negated = true), +"\n").named("comment")
+        val comment = (+"#" + CharParser("\n", ZERO_OR_MORE, negated = true) + "\n").named("comment")
         val ws = ZeroOrMore(AnyOf(comment, CharParser(" \t\n", ONE_OR_MORE))).named("whitespace")
         val letter = CharParser('a'..'z', 'A'..'Z').named("letter")
         val zeroOrMoreLettersAndNumbers = CharParser(ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9')

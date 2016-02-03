@@ -1,4 +1,31 @@
 package org.dungeongardener.util.numberexpr
+
+import org.dungeongardener.util.parser.Parser
+import org.dungeongardener.util.parser.ParserHelper
+
+
+class NumExprParser() : ParserHelper<NumExpr>() {
+
+    val comment = parser("comment") {
+        +"#" + !zeroOrMoreChars("\n") + "\n"
+    }
+
+    val ws = parser("whitespace") {
+        zeroOrMore(oneOrMoreChars(" \n\t"), comment)
+    }
+
+    override val parser: Parser = +"(" + ws + any("foo") + ")"
+
+
+
+
+}
+
+
+
+
+
+
 /*
 import org.flowutils.Symbol
 import org.parboiled.Action

@@ -1,8 +1,7 @@
 package org.dungeongardener.util.parser
 
-import org.dungeongardener.util.parser.parsers.Cut
-import org.dungeongardener.util.parser.parsers.GeneratingParser
-import org.dungeongardener.util.parser.parsers.ProcessingParser
+import org.dungeongardener.util.parser.parsers.*
+import org.dungeongardener.util.parser.result.ParseSuccess
 import org.dungeongardener.util.parser.result.ParsingFail
 import org.dungeongardener.util.parser.result.ParsingResult
 import java.io.File
@@ -19,8 +18,14 @@ interface Parser {
      */
     var name: String
 
+    /**
+     * Parse the content of the input file and return a parse success or failure object.
+     */
     fun parse(inputFile: File, debugOutput: Boolean = false) : ParsingResult = parse(inputFile.readText(), inputFile.name, debugOutput = debugOutput)
 
+    /**
+     * Parse the input text and return a parse success or failure object.
+     */
     fun parse(input: String, inputName: String = "input", debugOutput: Boolean = false) : ParsingResult {
         val root = ASTNode(input, errorMessage = ParsingFail(inputName), debugOutput = debugOutput)
 
@@ -38,6 +43,33 @@ interface Parser {
         }
     }
 
+    /**
+     * Parse the input text and return the first result.
+     * @throws ParsingError if there is no results, or if the parse failed.
+     */
+    fun <T>parseFirst(input: String, inputName: String = "input", debugOutput: Boolean = false) : T {
+        val result = parse(input, inputName, debugOutput)
+
+        when (result) {
+            is ParsingFail -> throw ParsingError(result.toString())
+            is ParseSuccess -> {
+                if (result.results.isEmpty()) throw ParsingError("No results were generated")
+                else return result.results.first() as T
+            }
+            else -> throw IllegalStateException("Unknown result type ${result.javaClass}")
+        }
+    }
+
+    /**
+     * Parse the text of the input file and return the first result.
+     * @throws ParsingError if there is no results, or if the parse failed.
+     */
+    fun <T>parseFirst(inputFile: File, debugOutput: Boolean = false) : T = parseFirst(inputFile.readText(), inputFile.name, debugOutput = debugOutput)
+
+
+    /**
+     * Used internally.
+     */
     fun parse(parent: ASTNode): Boolean
 
 
@@ -50,6 +82,27 @@ interface Parser {
     fun generatesMatchedText(): Parser = GeneratingParser(this, {it.text})
     infix fun generates(generator: (GeneratorContext) -> Any): Parser = GeneratingParser(this, generator)
     infix fun process(processor: (GeneratorContext) -> Unit): Parser = ProcessingParser(this, processor)
+
+    /**
+     * Add two parsers to create a sequence
+     */
+    operator fun plus(other: Parser): Sequence {
+        return Sequence(this, other)
+    }
+
+    /**
+     * Add string parser to create a sequence
+     */
+    operator fun plus(other: String): Sequence {
+        return Sequence(this, StringParser(other))
+    }
+
+    /**
+     * Add char parser to create a sequence
+     */
+    operator fun plus(other: CharSequence): Sequence {
+        return Sequence(this, CharParser(other))
+    }
 
     /**
      * Names the parser and returns it
