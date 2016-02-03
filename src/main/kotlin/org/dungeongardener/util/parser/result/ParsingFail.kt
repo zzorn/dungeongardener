@@ -1,7 +1,8 @@
 package org.dungeongardener.util.parser.result
 
-import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.ASTNode
+import org.dungeongardener.util.parser.Parser
+import org.dungeongardener.util.parser.ParsingError
 
 /**
  *
@@ -11,7 +12,7 @@ class ParsingFail(val inputName: String = "input") : ParsingResult {
     var expected: Parser? = null
     var location: Int = 0
     var input: String? = null
-    var leftRecursionError: Boolean = false
+    var exception: ParsingError? = null
 
     override val success: Boolean = false
 
@@ -38,12 +39,11 @@ class ParsingFail(val inputName: String = "input") : ParsingResult {
                 count
             }
 
-            if (leftRecursionError) {
-                return "Left recursion when parsing '${e.name}' at row $row, column $column in '$inputName': \n$substring\n" + " ".repeat(offset) + "^\n"
-            }
-            else {
-                return "Expected '${e.name}' at row $row, column $column in '$inputName': \n$substring\n" + " ".repeat(offset) + "^\n"
-            }
+            val message = exception?.message
+            val exceptionMessage = if (message != null) message + "\n" else ""
+
+            return exceptionMessage +
+                   "Expected '${e.name}' at row $row, column $column in '$inputName': \n$substring\n" + " ".repeat(offset) + "^\n"
         }
         else {
             return "Unreported error"
@@ -54,21 +54,13 @@ class ParsingFail(val inputName: String = "input") : ParsingResult {
         expected = failedNode.parser
         location = failedNode.start
         input = failedNode.input
-        leftRecursionError = false
-    }
-
-    fun leftRecursionError(rule: Parser, location: Int, input: String) {
-        expected = rule
-        this.location = location
-        this.input = input
-        leftRecursionError = true
     }
 
     fun clear() {
         expected = null
         location = 0
         input = null
-        leftRecursionError = false
+        exception = null
     }
 
     fun hasError(): Boolean = expected != null

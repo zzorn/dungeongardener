@@ -5,6 +5,7 @@ import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.parsers.*
 import org.dungeongardener.util.parser.result.ParseSuccess
+import org.dungeongardener.util.parser.result.ParsingFail
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -380,8 +381,9 @@ class TestParser {
     }
 
     private fun checkResult(parser: Parser, testString: String, vararg expectedResult: Any) {
-        val result = parser.parse(testString, "parsing test")
-        // DEBUG: if (result is ParsingFail) println("Failed: $result")
+        val result = parser.parse(testString, "parsing test", true)
+        // DEBUG:
+        if (result is ParsingFail) println("Failed: $result")
         assertEquals(true, result.success)
         assertEquals(expectedResult.toList(), (result as ParseSuccess).results.toList())
     }

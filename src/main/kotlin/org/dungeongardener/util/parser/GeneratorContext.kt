@@ -6,7 +6,7 @@ import java.util.*
  * Used when generating output for a parsed input
  * @param Parsing node that we are generating content for.
  */
-class GeneratorContext() {
+class GeneratorContext(val printDebugInfo: Boolean = false) {
 
     lateinit var currentNode: ASTNode
 
@@ -24,12 +24,19 @@ class GeneratorContext() {
     /**
      * Add given result to the end of the results.
      */
-    fun push(result: Any) = results.addLast(result)
+    fun push(result: Any) {
+        results.addLast(result)
+        if (printDebugInfo) println("Pushing ${result.javaClass.simpleName}: '$result'" + resultStats())
+    }
 
     /**
      * Remove and return the last pushed result.
      */
-    fun <T> pop(indexBack: Int = 0): T = results.removeAt(results.size - indexBack - 1) as T
+    fun <T> pop(indexBack: Int = 0): T  {
+        val value = results.removeAt(results.size - indexBack - 1) as T
+        if (printDebugInfo) println("Popping '$value'" + resultStats())
+        return value
+    }
 
     /**
      * Results collected from the current node, assuming that no results generated before this node were popped
@@ -47,6 +54,7 @@ class GeneratorContext() {
     fun <T> popCurrentNodeResults(): ArrayList<T> {
         val poppedResults = ArrayList(currentNodeResults)
         removeCurrentNodeResults()
+        if (printDebugInfo) println("Popping results for current node: '${poppedResults.joinToString()}' + resultStats()")
         return poppedResults as ArrayList<T>
     }
 
@@ -56,6 +64,10 @@ class GeneratorContext() {
      */
     fun removeCurrentNodeResults() {
         currentNode.removeCurrentNodeResults(results)
+        if (printDebugInfo) println("  Removing results for current node" + resultStats())
     }
 
+    private fun resultStats(): String {
+        return "\n  Result stack (size ${results.size}): '" + results.joinToString() + "'"
+    }
 }

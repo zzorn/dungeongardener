@@ -13,7 +13,8 @@ class ASTNode(val input: String,
               var ownLength: Int = 0,
               val errorMessage: ParsingFail = ParsingFail(),
               val parent: ASTNode? = null,
-              val caches: ParsingCaches = ParsingCaches()) {
+              val caches: ParsingCaches = ParsingCaches(),
+              val debugOutput: Boolean = false) {
 
 
     var resultGenerator: ((GeneratorContext) -> Any)? = null
@@ -42,7 +43,7 @@ class ASTNode(val input: String,
     /**
      * This node is not yet added to the parent
      */
-    fun createSubNode(parser: Parser) = ASTNode(input, parser, end, 0, errorMessage, this, caches)
+    fun createSubNode(parser: Parser) = ASTNode(input, parser, end, 0, errorMessage, this, caches, debugOutput)
 
     fun removeSubNode() {
         subNodes.removeLast()
@@ -91,7 +92,7 @@ class ASTNode(val input: String,
     }
 
     fun generateResults(): ParseSuccess {
-        val generatorContext = GeneratorContext()
+        val generatorContext = GeneratorContext(debugOutput)
         generateResults(generatorContext)
         return ParseSuccess(generatorContext.results)
     }
@@ -111,6 +112,7 @@ class ASTNode(val input: String,
             subNode.generateResults(context)
         }
 
+        context.currentNode = this
         lastGeneratedResultIndex = context.results.size
 
         // Generate result for this node
@@ -120,6 +122,7 @@ class ASTNode(val input: String,
             context.push(generator(context))
         }
 
+        context.currentNode = this
         lastGeneratedResultIndex = context.results.size
 
         // Process result for this node
@@ -135,6 +138,8 @@ class ASTNode(val input: String,
         toString(s, 0)
         return s.toString()
     }
+
+    val depth: Int get() = if (parent == null) 0 else 1 + parent.depth
 
     private fun toString(s: StringBuilder, indent: Int) {
         for (i in 1..indent) s.append("  ")
@@ -161,6 +166,12 @@ class ASTNode(val input: String,
         while(count > 0) {
             results.removeAt(firstGeneratedResultIndex)
             count--
+        }
+    }
+
+    fun addIfNotAlreadyAdded(node: ASTNode?) {
+        if (node != null && !subNodes.contains(node)) {
+            addSubNode(node)
         }
     }
 

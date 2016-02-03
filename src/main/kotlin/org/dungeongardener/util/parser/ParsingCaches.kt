@@ -12,13 +12,9 @@ class ParsingCaches(val packRatCache: MutableMap<PackRatKey, PackRatEntry> = Has
     data class PackRatKey(val parser: Parser, val startPos: Int)
 
     data class PackRatEntry(var node: ASTNode?, var lr: LeftRecursion?) {
-        fun setAns(node: ASTNode?) {
+        fun setASTNode(node: ASTNode?) {
             this.node = node
             this.lr = null
-        }
-        fun setAns(lr: LeftRecursion) {
-            this.node = null
-            this.lr = lr
         }
     }
 

@@ -55,4 +55,8 @@ class WeightedMap<T>(initialEntries: Map<T, Double>? = null) {
 
         throw IllegalStateException("Random value was $randomPosition, total weight was $totalWeight, but did not find any entry")
     }
+
+    override fun toString(): String {
+        return "WeightedMap(${entries.toString()})"
+    }
 }
