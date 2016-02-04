@@ -1,20 +1,45 @@
 package org.dungeongardener.util.numberexpr
 
-import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.Language
+import org.dungeongardener.util.parser.Parser
 
 
-class NumExprParser() : Language<NumExpr>() {
+class NumExprLanguage() : Language<NumExpr>() {
 
     val comment = parser("comment") {
         +"#" + zeroOrMoreCharsExcept("\n") + "\n"
     }
 
-    val ws = parser("whitespace") {
+    override val whitespace = parser("whitespace") {
         zeroOrMore(oneOrMoreChars(" \n\t"), comment)
     }
 
-    override val parser: Parser = +"(" + ws + any("foo") + ")"
+    val number = parserWithWhitespace("number") {
+        (opt(+"-" + ws) + oneOrMoreChars('0'..'9') + opt("." + oneOrMoreChars('0'..'9'))).generates {
+            it.text.toDouble()
+        }
+    }
+
+    val term = lazy
+    val expression = lazy
+
+    val parens = +"(" - expression - ")" + ws
+
+    val factor = any(parens, number)
+
+    init {
+        term.parser = factor - opt(
+                (+"*" - term).generates { MulExpr(it.pop(1), it.pop()) },
+                (+"/" - term).generates { DivExpr(it.pop(1), it.pop()) }
+        ) + ws
+
+        expression.parser = term - opt(
+                    (+"+" - expression).generates { SumExpr(it.pop(1), it.pop()) },
+                    (+"-" - expression).generates { SubExpr(it.pop(1), it.pop()) }
+        ) + ws
+    }
+
+    override val parser: Parser = ws + expression + endOfInput
 
 
 

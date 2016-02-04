@@ -14,6 +14,19 @@ abstract class Language<T> {
     abstract val parser: Parser
 
     /**
+     * Short form for the whitespace parser.
+     */
+    val ws: Parser
+        get() = whitespace
+
+    /**
+     * The default whitespace parser.
+     */
+    open val whitespace: Parser = parser("whitespace") {
+        zeroOrMoreChars(" \n\t")
+    }
+
+    /**
      * Parse the content of the input file and return a parse success or failure object.
      */
     fun parse(inputFile: File, debugOutput: Boolean = false) : ParsingResult = parser.parse(inputFile.readText(), inputFile.name, debugOutput = debugOutput)
@@ -36,13 +49,23 @@ abstract class Language<T> {
     fun <T>parseFirst(inputFile: File, debugOutput: Boolean = false) : T = parser.parseFirst(inputFile, debugOutput = debugOutput)
 
     protected fun <P : Parser> parser(name: String? = null, parserFunc: () -> P): P {
-        val parser = parserFunc()
+        var parser = parserFunc()
 
         if (name != null) parser.name = name
 
         return parser
     }
 
+    /**
+     * Returns the provided parser followed by a whitespace parser.
+     */
+    protected fun parserWithWhitespace(name: String? = null, parserFunc: () -> Parser): Sequence {
+        return Sequence(parser(name, parserFunc), whitespace)
+    }
+
+    /**
+     * Define the parser later, declare it earlier so that it can be used in other parsers
+     */
     protected val lazy: LazyParser
         get() = LazyParser()
 
@@ -90,5 +113,31 @@ abstract class Language<T> {
 
     protected operator fun String.unaryPlus(): StringParser = StringParser(this)
     protected operator fun String.plus(parser: Parser): Sequence = Sequence(StringParser(this), parser)
+
+    /**
+     * Separates two parsers with the default whitespace parser
+     */
+    protected operator fun Parser.minus(other: Parser): Sequence = Sequence(this, whitespace, other)
+
+    /**
+     * Separates two parsers with the default whitespace parser
+     */
+    protected operator fun Parser.minus(other: String): Sequence = Sequence(this, whitespace, StringParser(other))
+
+    /**
+     * Prepends the parser with the default whitespace parser.
+     */
+    protected operator fun Parser.unaryMinus(): Sequence = Sequence(whitespace, this)
+
+    /**
+     * Prepends a string parser with the default whitespace parser.
+     */
+    protected operator fun String.unaryMinus(): Sequence = Sequence(whitespace, StringParser(this))
+
+    /**
+     * Shorthand for AnyOf
+     */
+    protected operator fun Parser.div(other: Parser): AnyOf = AnyOf(this, other)
+
 
 }
