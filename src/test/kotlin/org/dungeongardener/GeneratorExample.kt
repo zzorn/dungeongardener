@@ -30,7 +30,7 @@ title = (
         2: "the " + emotion + " " + species,
         2: "the " + emotion + " " + verb + " of " + species + "s",
         "the " + emotion + " " + verb,
-        0.5:"the " + emotion + (" but ", " and ", " ") + emotion + " " + verb,
+        "the " + emotion + (" but ", " and ", " ") + emotion + " " + verb,
         "the " + emotion + " " + species
 )
 
