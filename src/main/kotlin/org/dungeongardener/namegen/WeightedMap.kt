@@ -1,5 +1,6 @@
 package org.dungeongardener.namegen
 
+import org.flowutils.Check
 import org.flowutils.random.RandomSequence
 import org.flowutils.random.XorShift
 import java.util.*
@@ -39,21 +40,21 @@ class WeightedMap<T>(initialEntries: Map<T, Double>? = null) {
     }
 
     fun addEntry(entry: T, relativeAdditionalWeight: Double) {
+        Check.positiveOrZero(relativeAdditionalWeight, "relativeAdditionalWeight")
         val weight = Math.max(0.0, relativeAdditionalWeight + (entries.get(entry) ?: 0.0))
         entries.put(entry, weight)
-        totalWeight += weight
+        totalWeight += relativeAdditionalWeight
     }
 
     fun randomEntry(random: RandomSequence = defaultRandom): T {
-        val randomPosition = random.nextDouble(totalWeight)
-        var position = 0.0
+        var randomPosition = random.nextDouble(totalWeight)
 
         for (entry in entries) {
-            position += entry.value
-            if (position >= randomPosition) return entry.key
+            randomPosition -= entry.value
+            if (randomPosition <= 0) return entry.key
         }
 
-        throw IllegalStateException("Random value was $randomPosition, total weight was $totalWeight, but did not find any entry")
+        throw IllegalStateException("Random value was $randomPosition, total weight was $totalWeight, but did not find any entry.  Sum of weights: " + entries.values.reduce { a, b ->  a+b})
     }
 
     override fun toString(): String {
