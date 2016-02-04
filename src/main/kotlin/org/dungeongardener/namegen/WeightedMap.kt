@@ -21,6 +21,12 @@ class WeightedMap<T>(initialEntries: Map<T, Double>? = null) {
         if (initialEntries != null) addEntries(initialEntries)
     }
 
+    fun getRelativeWeight(entry: T): Double {
+        val entry = entries.get(entry)
+        if (entry == null || entry <= 0.0) return 0.0
+        else return entry / totalWeight
+    }
+
     fun setEntry(entry: T, relativeWeight: Double) {
         removeEntry(entry)
 
