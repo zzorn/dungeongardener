@@ -2,6 +2,7 @@ package org.dungeongardener.namegen.generator.nodes
 
 import org.dungeongardener.namegen.GeneratorContext
 import org.dungeongardener.namegen.generator.ContentBuilder
+import org.dungeongardener.util.randomProvider
 import org.flowutils.random.RandomSequence
 
 /**
@@ -9,9 +10,9 @@ import org.flowutils.random.RandomSequence
  */
 interface GeneratorNode<T, R> {
 
-    fun generate(random: RandomSequence, context: GeneratorContext<T, R>, builder: ContentBuilder<T, R>)
+    fun generate(random: RandomSequence = randomProvider, context: GeneratorContext<T, R>, builder: ContentBuilder<T, R>)
 
-    fun generate(random: RandomSequence, context: GeneratorContext<T, R>): R {
+    fun generate(random: RandomSequence = randomProvider, context: GeneratorContext<T, R>): R {
         val builder = context.createContentBuilder()
         generate(random, context, builder)
         return builder.build()

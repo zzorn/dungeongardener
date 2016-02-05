@@ -1,4 +1,4 @@
-package org.dungeongardener.creature
+package org.dungeongardener.model.creature
 
 import java.util.*
 
@@ -10,7 +10,7 @@ data class CreatureFamily(
         val parentFamily: CreatureFamily? = null
 ) {
 
-    var creatures: MutableList<Creature> = ArrayList()
+    var creatureTypes: MutableList<CreatureType> = ArrayList()
 
     private var _childFamilies: MutableList<CreatureFamily> = ArrayList()
 

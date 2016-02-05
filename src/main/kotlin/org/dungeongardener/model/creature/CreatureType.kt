@@ -1,13 +1,15 @@
-package org.dungeongardener.creature
+package org.dungeongardener.model.creature
 
+import org.dungeongardener.model.TimeOfDay
+import org.dungeongardener.model.TimeOfYear
+import org.dungeongardener.model.terrain.TerrainType
 import org.dungeongardener.util.numberexpr.NumExpr
 import java.util.*
 
 /**
  * Describes a type of creature
  */
-// TODO: Allow using another creature as template, the template creature may or may not be abstract...
-data class Creature(
+data class CreatureType (
         val name: String,
         val summary: String,
         val appearance: String,
@@ -18,12 +20,14 @@ data class Creature(
         val numberInLair: NumExpr,
         val family: CreatureFamily,
         val stats: StatBlock,
+        val weigth_kg: NumExpr,
+        val length_m: NumExpr,
         val distribution: MutableMap<TerrainType, Commonality> = HashMap(),
         val dailyActivity: MutableMap<TimeOfDay, Double> = HashMap(),
         val yearlyActivity: MutableMap<TimeOfYear, Double> = HashMap()
 ) {
     init{
-        family.creatures.add(this)
+        family.creatureTypes.add(this)
     }
 
 

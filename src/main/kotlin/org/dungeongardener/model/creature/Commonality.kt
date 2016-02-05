@@ -1,4 +1,4 @@
-package org.dungeongardener.creature
+package org.dungeongardener.model.creature
 
 /**
  *
