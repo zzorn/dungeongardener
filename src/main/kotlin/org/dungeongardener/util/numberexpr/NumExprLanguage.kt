@@ -35,7 +35,7 @@ class NumExprLanguage() : Language<NumExpr>() {
 
     val unaryMinus = (+"-" + ws + factor).generates { NegExpr(it.pop()) }
 
-    val constant = (number + ws).generates { ConstantExpr(it.pop()) }
+    val constant = (number).generates { ConstantExpr(it.pop()) }
 
     val dice = (positiveIntegerNumber + char("dD") + positiveIntegerNumber + ws).generates {
         DiceExpr(it.pop(), it.pop())
