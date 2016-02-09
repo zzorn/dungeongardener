@@ -9,6 +9,7 @@ import java.io.File
 /**
  * Base class for language definitions, provides utility functions.
  */
+// TODO: Subclass with language that has predefined parsers for things like letters, identifiers, integers, doubles, quoted strings, etc..
 abstract class Language<T> {
 
     abstract val parser: Parser
@@ -26,6 +27,12 @@ abstract class Language<T> {
         zeroOrMoreChars(" \n\t")
     }
 
+    // TODO: Extract these to own subclass
+    open val letter = CharParser('a'..'z', 'A'..'Z').named("letter")
+    open val zeroOrMoreLettersAndNumbers = CharParser(ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9')
+    open val identifier = Sequence(letter, zeroOrMoreLettersAndNumbers).named("identifier")
+    open val quotedString = Sequence(+"\"", CharParser("\"", ZERO_OR_MORE).anyExcept().generatesMatchedText(), +"\"").named("quotedString")
+
     /**
      * Parse the content of the input file and return a parse success or failure object.
      */
@@ -40,13 +47,13 @@ abstract class Language<T> {
      * Parse the input text and return the first result.
      * @throws ParsingError if there is no results, or if the parse failed.
      */
-    fun <T>parseFirst(input: String, inputName: String = "input", debugOutput: Boolean = false) : T = parser.parseFirst(input, inputName, debugOutput)
+    fun parseFirst(input: String, inputName: String = "input", debugOutput: Boolean = false) : T = parser.parseFirst(input, inputName, debugOutput)
 
     /**
      * Parse the text of the input file and return the first result.
      * @throws ParsingError if there is no results, or if the parse failed.
      */
-    fun <T>parseFirst(inputFile: File, debugOutput: Boolean = false) : T = parser.parseFirst(inputFile, debugOutput = debugOutput)
+    fun parseFirst(inputFile: File, debugOutput: Boolean = false) : T = parser.parseFirst(inputFile, debugOutput = debugOutput)
 
     protected fun <P : Parser> parser(name: String? = null, parserFunc: () -> P): P {
         var parser = parserFunc()

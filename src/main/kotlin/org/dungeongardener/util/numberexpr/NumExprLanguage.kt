@@ -2,6 +2,7 @@ package org.dungeongardener.util.numberexpr
 
 import org.dungeongardener.util.parser.Language
 import org.dungeongardener.util.parser.Parser
+import org.flowutils.Symbol
 
 
 class NumExprLanguage() : Language<NumExpr>() {
@@ -14,29 +15,46 @@ class NumExprLanguage() : Language<NumExpr>() {
         zeroOrMore(oneOrMoreChars(" \n\t"), comment)
     }
 
+    val positiveIntegerNumber = parserWithWhitespace("positiveIntegerNumber") {
+        oneOrMoreChars('0'..'9').generates {
+            it.text.toInt()
+        }
+    }
+
     val number = parserWithWhitespace("number") {
-        (opt(+"-" + ws) + oneOrMoreChars('0'..'9') + opt("." + oneOrMoreChars('0'..'9'))).generates {
+        (opt(+"-") + oneOrMoreChars('0'..'9') + opt("." + oneOrMoreChars('0'..'9'))).generates {
             it.text.toDouble()
         }
     }
 
     val term = lazy
     val expression = lazy
+    val factor = lazy
 
     val parens = +"(" - expression - ")" + ws
 
-    val factor = any(parens, number)
+    val unaryMinus = (+"-" + ws + factor).generates { NegExpr(it.pop()) }
+
+    val constant = (number + ws).generates { ConstantExpr(it.pop()) }
+
+    val dice = (positiveIntegerNumber + char("dD") + positiveIntegerNumber + ws).generates {
+        DiceExpr(it.pop(), it.pop())
+    }
+
+    val reference = identifier.generates { ReferenceExpr(Symbol.get(it.text)) } + ws
 
     init {
-        term.parser = factor - opt(
+        factor.parser = any(parens, unaryMinus, dice, constant, reference)
+
+        term.parser = factor - opt(any(
                 (+"*" - term).generates { MulExpr(it.pop(1), it.pop()) },
                 (+"/" - term).generates { DivExpr(it.pop(1), it.pop()) }
-        ) + ws
+        )) + ws
 
-        expression.parser = term - opt(
+        expression.parser = term - opt(any(
                     (+"+" - expression).generates { SumExpr(it.pop(1), it.pop()) },
                     (+"-" - expression).generates { SubExpr(it.pop(1), it.pop()) }
-        ) + ws
+        )) + ws
     }
 
     override val parser: Parser = ws + expression + endOfInput
