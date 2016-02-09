@@ -16,6 +16,7 @@ data class Creature(
         val basicStats: BasicStats = BasicStats(),
         val weight_kg: Double = 0.0,
         val length_m: Double = 0.0,
+        var age_years: Double = 0.0,
         val factions: MutableSet<String> = LinkedHashSet(),
         val skills: MutableMap<Skill, Double> = HashMap(),
         val abilities: MutableSet<Ability> = LinkedHashSet(),
