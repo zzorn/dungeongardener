@@ -22,7 +22,7 @@ class NumExprLanguage() : Language<NumExpr>() {
     }
 
     val number = parserWithWhitespace("number") {
-        (opt(+"-") + oneOrMoreChars('0'..'9') + opt("." + oneOrMoreChars('0'..'9'))).generates {
+        (opt(+"-") + oneOrMoreChars('0'..'9') + opt(+".", oneOrMoreChars('0'..'9'))).generates {
             it.text.toDouble()
         }
     }
