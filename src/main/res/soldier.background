@@ -1,0 +1,20 @@
+
+background(Soldier, "Enlist as a soldier", age <= 20 and easyTest(str)) {
+    rank = "Enlisted"
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+

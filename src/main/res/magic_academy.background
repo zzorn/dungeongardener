@@ -1,0 +1,69 @@
+
+background("Magic Academy", "Join magic academy", test(INT)) {
+
+    node("Try for scholarship") {
+        scholarship = veryHardTest(INT)
+    }
+
+    if (!scholarship) node("Pay Tuition") {
+        pay(300 gold)
+
+    }
+
+
+
+
+
+
+}
+
+
+node("Magic Academy") {
+    val tuition = 300
+    val magicType = "Naturalism"
+    var year = 1
+    var scholarship = false
+
+    node("Entrance test") {
+        if (not test(INT)) end("Failed entrance test")
+    }
+
+    node("Try for scholarship") {
+        if (veryHardTest(INT)) {
+            scholarship = true
+            msg("Got a scholarship")
+        }
+    }
+
+    node("School Year") {
+        if (not scholarship) node("Pay tuition") {
+            if (not pay("Pay tuition", tuition)) {
+                end("Declined to pay")
+            }
+        }
+
+        if (year <= 3) node("Basic Studies") {
+            learn("Magic Theory", 1d6 * 10)
+            learn(
+        }
+
+        if (year > 3) node("Advanced Studies") {
+            learn("Magic Theory", 1d6 * 5)
+
+        }
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+

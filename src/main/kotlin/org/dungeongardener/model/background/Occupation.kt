@@ -40,6 +40,6 @@ interface Occupation {
      *       If the gamemaster and the players used the same seed, they could have the same NPC contacts generated..  Although probably better to do it interactively with the GM.
      *
      */
-    fun enter(character: Creature /* TODO: callback */ )
+    fun enter(character: Creature, callback: BackgroundCallback)
 
 }
