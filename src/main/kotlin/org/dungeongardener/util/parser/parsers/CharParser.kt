@@ -7,7 +7,9 @@ import org.dungeongardener.util.parser.ParserBase
 /**
  * Some of the specified characters with the specified multiplicity (zero or one, one, zero or more, one or more - defaults to one)
  */
-class CharParser(val acceptedCharacters: CharSequence, val multiplicity: Multiplicity = Multiplicity.ONE, val negated: Boolean = false) : ParserBase() {
+class CharParser(val acceptedCharacters: CharSequence,
+                 val multiplicity: Multiplicity = Multiplicity.ONE,
+                 val negated: Boolean = false) : ParserBase() {
 
     constructor(character: Char, multiplicity: Multiplicity = Multiplicity.ONE) : this(character.toString(), multiplicity)
     constructor(multiplicity: Multiplicity, vararg characterRanges: CharRange) : this(characterRanges.joinToString("") { it.joinToString("") }, multiplicity )

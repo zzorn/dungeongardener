@@ -88,7 +88,7 @@ class ASTNode(val input: String,
     }
 
     fun consumeInput(numberOfCharacters: Int) {
-        ownLength = numberOfCharacters
+        ownLength += numberOfCharacters
     }
 
     fun generateResults(): ParseSuccess {

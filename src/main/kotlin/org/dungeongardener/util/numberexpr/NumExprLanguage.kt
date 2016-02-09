@@ -1,11 +1,11 @@
 package org.dungeongardener.util.numberexpr
 
-import org.dungeongardener.util.parser.Language
+import org.dungeongardener.util.parser.LanguageBase
 import org.dungeongardener.util.parser.Parser
 import org.flowutils.Symbol
 
 
-class NumExprLanguage() : Language<NumExpr>() {
+class NumExprLanguage() : LanguageBase<NumExpr>() {
 
     val comment = parser("comment") {
         +"#" + zeroOrMoreCharsExcept("\n") + "\n"
@@ -41,7 +41,7 @@ class NumExprLanguage() : Language<NumExpr>() {
         DiceExpr(it.pop(), it.pop())
     }
 
-    val reference = identifier.generates { ReferenceExpr(Symbol.get(it.text)) } + ws
+    val reference = identifier.generates { ReferenceExpr(Symbol.get(it.pop())) } + ws
 
     init {
         factor.parser = any(parens, unaryMinus, dice, constant, reference)

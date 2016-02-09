@@ -25,4 +25,4 @@ val String.parser: StringParser
     get() = StringParser(this)
 
 operator fun String.unaryPlus(): StringParser = StringParser(this)
-operator fun String.plus(parser: Parser): Sequence = Sequence(StringParser(this), parser)
+operator fun String.plus(parser: Parser): SequenceParser = SequenceParser(StringParser(this), parser)

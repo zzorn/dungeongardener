@@ -31,7 +31,7 @@ class NumExprTest {
         val lang = NumExprLanguage()
         val context = SimpleNumContext()
         for (i in 1..10)
-            println("Dice test 3d6 + bonus: " + lang.parseFirst(" 3D6").evaluate(context))
+            println("Dice test 3d6: " + lang.parseFirst(" 3D6").evaluate(context))
     }
 
     private fun check(expected: Double, expression: String) {

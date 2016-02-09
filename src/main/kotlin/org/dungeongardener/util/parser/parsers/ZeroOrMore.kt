@@ -10,8 +10,8 @@ import org.dungeongardener.util.parser.ParserBase
 class ZeroOrMore(val parser: Parser): ParserBase() {
 
     constructor(text: String) : this(StringParser(text))
-    constructor(vararg additional: Parser) : this(Sequence(*additional))
-    constructor(vararg additional: String) : this(Sequence(*additional))
+    constructor(vararg additional: Parser) : this(SequenceParser(*additional))
+    constructor(vararg additional: String) : this(SequenceParser(*additional))
 
     override fun doParse(parserNode: ASTNode): Boolean {
 

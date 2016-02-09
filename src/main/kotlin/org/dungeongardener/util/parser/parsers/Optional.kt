@@ -11,8 +11,8 @@ import org.dungeongardener.util.parser.ParserBase
 class Optional(val parser: Parser) : ParserBase() {
 
     constructor(text: String) : this(StringParser(text))
-    constructor(vararg parsers: Parser) : this(Sequence(*parsers))
-    constructor(vararg parsers: String) : this(Sequence(*parsers))
+    constructor(vararg parsers: Parser) : this(SequenceParser(*parsers))
+    constructor(vararg parsers: String) : this(SequenceParser(*parsers))
 
     override fun doParse(parserNode: ASTNode): Boolean {
         parser.parse(parserNode)

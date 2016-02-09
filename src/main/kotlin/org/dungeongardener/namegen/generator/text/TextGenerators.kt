@@ -55,9 +55,9 @@ class TextGenerators(val markovText: String? = null): GeneratorContext<String, S
         val ws = ZeroOrMore(AnyOf(comment, CharParser(" \t\n", ONE_OR_MORE))).named("whitespace")
         val letter = CharParser('a'..'z', 'A'..'Z').named("letter")
         val zeroOrMoreLettersAndNumbers = CharParser(ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9')
-        val identifier = Sequence(letter, zeroOrMoreLettersAndNumbers).named("identifier")
-        val quotedString = Sequence(+"\"", CharParser("\"", ZERO_OR_MORE).anyExcept().generatesMatchedText(), +"\"").named("quotedString")
-        val positiveNumber = Sequence(
+        val identifier = SequenceParser(letter, zeroOrMoreLettersAndNumbers).named("identifier")
+        val quotedString = SequenceParser(+"\"", CharParser("\"", ZERO_OR_MORE).anyExcept().generatesMatchedText(), +"\"").named("quotedString")
+        val positiveNumber = SequenceParser(
                 CharParser(ONE_OR_MORE, '0'..'9'),
                 Optional(+".", CharParser(ONE_OR_MORE, '0'..'9'))
         ).named("positiveNumber").generates { it.text.toDouble() }
@@ -66,16 +66,16 @@ class TextGenerators(val markovText: String? = null): GeneratorContext<String, S
         val generator = LazyParser()
         val lowLevelGenerator = LazyParser()
         val lowLevelGenerator2 = LazyParser()
-        val parens = Sequence(+"(", ws, generator, ws, +")", ws).named("parenthesis")
+        val parens = SequenceParser(+"(", ws, generator, ws, +")", ws).named("parenthesis")
         val text = quotedString.generates {
             val content = it.pop<String>()
             ContentNode<String, String>(content)
         }.named("text")
-        val weight = AnyOf(Sequence(positiveNumber, ws, +":"), AutoMatch().generates { 1.0 }).named("weight") // Default to 1.0 weight if weight not specified
-        val weightedNode = Sequence(ws, weight, ws, lowLevelGenerator).named("weightedNode").generates {
+        val weight = AnyOf(SequenceParser(positiveNumber, ws, +":"), AutoMatch().generates { 1.0 }).named("weight") // Default to 1.0 weight if weight not specified
+        val weightedNode = SequenceParser(ws, weight, ws, lowLevelGenerator).named("weightedNode").generates {
             Pair<GeneratorNode<String, String>, Double>(it.pop(), it.pop())
         }
-        val weighted = Sequence(weightedNode, OneOrMore(ws, +",", ws, weightedNode)).named("weightedSet").generates {
+        val weighted = SequenceParser(weightedNode, OneOrMore(ws, +",", ws, weightedNode)).named("weightedSet").generates {
             val weightedMap = WeightedMap<GeneratorNode<String, String>>()
             val popCurrentNodeResults = it.popCurrentNodeResults<Pair<GeneratorNode<String, String>, Double>>()
             for ((node, w) in popCurrentNodeResults) {
@@ -83,28 +83,28 @@ class TextGenerators(val markovText: String? = null): GeneratorContext<String, S
             }
             WeightedNode(weightedMap)
         }
-        val concatenated = Sequence(lowLevelGenerator2, OneOrMore(ws, +"+", ws, lowLevelGenerator2)).named("concatenated").generates {
+        val concatenated = SequenceParser(lowLevelGenerator2, OneOrMore(ws, +"+", ws, lowLevelGenerator2)).named("concatenated").generates {
             SequenceNode(it.popCurrentNodeResults<GeneratorNode<String, String>>())
         }
         val reference = identifier.generates { ReferenceNode<String, String>(it.text) }.named("reference")
 
-        val function = Sequence(AnyOf(functions.keys.map{it.toString()}).generatesMatchedText(), ws, +"(", ws, generator, ws, +")", ws).generates {
+        val function = SequenceParser(AnyOf(functions.keys.map{it.toString()}).generatesMatchedText(), ws, +"(", ws, generator, ws, +")", ws).generates {
             val node = it.pop<GeneratorNode<String, String>>()
             val functionName = it.pop<String>()
             TextFunctionNode(node, functions.get(functionName) ?: throw IllegalStateException("Could not find function $functionName"))
         }
 
-        lowLevelGenerator2.parser = Sequence(AnyOf(parens, text, function, reference), ws)
-        lowLevelGenerator.parser = Sequence(AnyOf(concatenated, lowLevelGenerator2), ws)
-        generator.parser = Sequence(AnyOf(weighted, lowLevelGenerator), ws).named("generator")
+        lowLevelGenerator2.parser = SequenceParser(AnyOf(parens, text, function, reference), ws)
+        lowLevelGenerator.parser = SequenceParser(AnyOf(concatenated, lowLevelGenerator2), ws)
+        generator.parser = SequenceParser(AnyOf(weighted, lowLevelGenerator), ws).named("generator")
 
         // Named generators
-        val namedGenerator = Sequence(identifier.generatesMatchedText(), ws, +"=", ws, generator.cut()).named("namedGenerator").generates {
+        val namedGenerator = SequenceParser(identifier.generatesMatchedText(), ws, +"=", ws, generator.cut()).named("namedGenerator").generates {
             val id: String = it.pop<String>(1)
             val gen: GeneratorNode<String, String> = it.pop()
             Pair(id, gen)
         }
-        val generatorParser = Sequence(
+        val generatorParser = SequenceParser(
                 ws,
                 ZeroOrMore(
                         namedGenerator

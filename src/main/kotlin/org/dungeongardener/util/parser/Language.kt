@@ -9,7 +9,6 @@ import java.io.File
 /**
  * Base class for language definitions, provides utility functions.
  */
-// TODO: Subclass with language that has predefined parsers for things like letters, identifiers, integers, doubles, quoted strings, etc..
 abstract class Language<T> {
 
     abstract val parser: Parser
@@ -26,12 +25,6 @@ abstract class Language<T> {
     open val whitespace: Parser = parser("whitespace") {
         zeroOrMoreChars(" \n\t")
     }
-
-    // TODO: Extract these to own subclass
-    open val letter = CharParser('a'..'z', 'A'..'Z').named("letter")
-    open val zeroOrMoreLettersAndNumbers = CharParser(ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9')
-    open val identifier = Sequence(letter, zeroOrMoreLettersAndNumbers).named("identifier")
-    open val quotedString = Sequence(+"\"", CharParser("\"", ZERO_OR_MORE).anyExcept().generatesMatchedText(), +"\"").named("quotedString")
 
     /**
      * Parse the content of the input file and return a parse success or failure object.
@@ -66,8 +59,8 @@ abstract class Language<T> {
     /**
      * Returns the provided parser followed by a whitespace parser.
      */
-    protected fun parserWithWhitespace(name: String? = null, parserFunc: () -> Parser): Sequence {
-        return Sequence(parser(name, parserFunc), whitespace)
+    protected fun parserWithWhitespace(name: String? = null, parserFunc: () -> Parser): SequenceParser {
+        return SequenceParser(parser(name, parserFunc), whitespace)
     }
 
     /**
@@ -98,6 +91,9 @@ abstract class Language<T> {
     protected val anyChar: CharParser
         get() = CharParser("").anyExcept()
 
+    /**
+     * Matches any of the specified characters once.
+     */
     protected fun char(chars: String): CharParser = CharParser(chars)
     protected fun oneOrMoreChars(chars: String): CharParser = CharParser(chars, ONE_OR_MORE)
     protected fun zeroOrMoreChars(chars: String): CharParser = CharParser(chars, ZERO_OR_MORE)
@@ -112,6 +108,9 @@ abstract class Language<T> {
     protected fun oneOrMoreCharsExcept(vararg chars: CharRange): CharParser = CharParser(ONE_OR_MORE, *chars).anyExcept()
     protected fun zeroOrMoreCharsExcept(vararg chars: CharRange): CharParser = CharParser(ZERO_OR_MORE, *chars).anyExcept()
 
+    /**
+     * Simple parser that just returns true without consuming any input.
+     */
     protected val autoMatch: AutoMatch
         get() = AutoMatch()
 
@@ -119,27 +118,27 @@ abstract class Language<T> {
         get() = EndOfInput()
 
     protected operator fun String.unaryPlus(): StringParser = StringParser(this)
-    protected operator fun String.plus(parser: Parser): Sequence = Sequence(StringParser(this), parser)
+    protected operator fun String.plus(parser: Parser): SequenceParser = SequenceParser(StringParser(this), parser)
 
     /**
      * Separates two parsers with the default whitespace parser
      */
-    protected operator fun Parser.minus(other: Parser): Sequence = Sequence(this, whitespace, other)
+    protected operator fun Parser.minus(other: Parser): SequenceParser = SequenceParser(this, whitespace, other)
 
     /**
      * Separates two parsers with the default whitespace parser
      */
-    protected operator fun Parser.minus(other: String): Sequence = Sequence(this, whitespace, StringParser(other))
+    protected operator fun Parser.minus(other: String): SequenceParser = SequenceParser(this, whitespace, StringParser(other))
 
     /**
      * Prepends the parser with the default whitespace parser.
      */
-    protected operator fun Parser.unaryMinus(): Sequence = Sequence(whitespace, this)
+    protected operator fun Parser.unaryMinus(): SequenceParser = SequenceParser(whitespace, this)
 
     /**
      * Prepends a string parser with the default whitespace parser.
      */
-    protected operator fun String.unaryMinus(): Sequence = Sequence(whitespace, StringParser(this))
+    protected operator fun String.unaryMinus(): SequenceParser = SequenceParser(whitespace, StringParser(this))
 
     /**
      * Shorthand for AnyOf

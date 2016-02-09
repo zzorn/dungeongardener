@@ -28,7 +28,7 @@ class TestParser {
 
     @Test
     fun testSequence() {
-        val parser = Sequence(StringParser("foo"), StringParser("bar"))
+        val parser = SequenceParser(StringParser("foo"), StringParser("bar"))
 
         checkParsing(parser, true, "foobar")
         checkParsing(parser, true, "foobar ")
@@ -38,7 +38,7 @@ class TestParser {
 
     @Test
     fun testNestedSequence() {
-        val parser = Sequence("foo".parser, Sequence("zap".parser, Optional("zip".parser)), "bar".parser)
+        val parser = SequenceParser("foo".parser, SequenceParser("zap".parser, Optional("zip".parser)), "bar".parser)
 
         checkParsing(parser, true, "foozapzipbar")
         checkParsing(parser, true, "foozapbar")
@@ -61,7 +61,7 @@ class TestParser {
 
     @Test
     fun testEndOfInput() {
-        val parser = Sequence(StringParser("foo"), StringParser("bar"), EndOfInput())
+        val parser = SequenceParser(StringParser("foo"), StringParser("bar"), EndOfInput())
 
         checkParsing(parser, true, "foobar")
         checkParsing(parser, false, "foobar ")
@@ -73,7 +73,7 @@ class TestParser {
 
     @Test
     fun testNot() {
-        val parser = Sequence(AnyOf("foo", "bar"), Not("zap"), Optional("bup"), EndOfInput())
+        val parser = SequenceParser(AnyOf("foo", "bar"), Not("zap"), Optional("bup"), EndOfInput())
 
         checkParsing(parser, true, "foobup")
         checkParsing(parser, true, "foo")
@@ -87,7 +87,7 @@ class TestParser {
 
     @Test
     fun testAnd() {
-        val parser = Sequence(AnyOf("foo", "bar"), And("zap"), Optional("bup"))
+        val parser = SequenceParser(AnyOf("foo", "bar"), And("zap"), Optional("bup"))
 
         checkParsing(parser, false, "foo")
         checkParsing(parser, false, "foobup")
@@ -102,7 +102,7 @@ class TestParser {
 
     @Test
     fun testIgnoreCase() {
-        val parser = Sequence(OneOrMore(AnyOf(StringParser("foo", true), StringParser("BAR", false))), EndOfInput())
+        val parser = SequenceParser(OneOrMore(AnyOf(StringParser("foo", true), StringParser("BAR", false))), EndOfInput())
 
         checkParsing(parser, true, "foo")
         checkParsing(parser, true, "fooBAR")
@@ -120,7 +120,7 @@ class TestParser {
     @Test
     fun testFooBarFooBar() {
         val fooOrBar = AnyOf(StringParser("foo") generates {1}, StringParser("bar") generates {2})
-        val parser = Sequence(fooOrBar, fooOrBar, EndOfInput())
+        val parser = SequenceParser(fooOrBar, fooOrBar, EndOfInput())
 
         checkResult(parser, "foobar", 1, 2)
         checkResult(parser, "barbar", 2, 2)
@@ -144,7 +144,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration2() {
-        val parser = Sequence("foo".parser, "bar".parser) generates { println("testtext: '${it.text}' "); it.text }
+        val parser = SequenceParser("foo".parser, "bar".parser) generates { println("testtext: '${it.text}' "); it.text }
 
         checkResult(parser, "foobarbar", "foobar")
         checkParsing(parser, false, "foo")
@@ -167,7 +167,7 @@ class TestParser {
     @Test
     fun testValueGeneration4() {
         val p1 = OneOrMore(AnyOf("foo".parser, "bar".parser))
-        val p2 = OneOrMore(Sequence(p1, Optional("zip".parser))) generates {it.text }
+        val p2 = OneOrMore(SequenceParser(p1, Optional("zip".parser))) generates {it.text }
 
         checkResultWithSameReturn(p2, "foozipfoo")
         checkResultWithSameReturn(p2, "foobarzipfoo")
@@ -207,7 +207,7 @@ class TestParser {
 
     @Test
     fun testValueGeneration7() {
-        val parser = Sequence("foo".parser, Sequence("bar".parser, "bur".parser)) generates {it.text }
+        val parser = SequenceParser("foo".parser, SequenceParser("bar".parser, "bur".parser)) generates {it.text }
 
         checkResult(parser, "foobarbur", "foobarbur")
         checkParsing(parser, false, "foobar")
@@ -221,7 +221,7 @@ class TestParser {
         val digit = CharParser('0'..'9').named("digit")
 
         val number =
-                Sequence(
+                SequenceParser(
                         Optional("-"),
                         OneOrMore(digit),
                         whitespace
@@ -232,7 +232,7 @@ class TestParser {
         val expression = LazyParser()
 
         val parens =
-                Sequence(
+                SequenceParser(
                         "(".unaryPlus(),
                         whitespace,
                         expression,
@@ -242,10 +242,10 @@ class TestParser {
 
         val term = AnyOf(number, parens).named("term")
 
-        expression.parser = Sequence(
+        expression.parser = SequenceParser(
                 term,
                 Optional(
-                        Sequence(
+                        SequenceParser(
                                 "+".unaryPlus(),
                         whitespace,
                         term).generates { it.pop<Int>() + it.pop<Int>() }
@@ -253,7 +253,7 @@ class TestParser {
                 whitespace
         ).named("expression")
 
-        val inputLine = Sequence(
+        val inputLine = SequenceParser(
                 whitespace,
                 expression,
                 EndOfInput()
@@ -295,8 +295,8 @@ class TestParser {
     @Test
     fun testLeftRecursiveParsing() {
         val p = LazyParser()
-        p.parser = Sequence(Optional(p), +"a")
-        val parser = Sequence(p, EndOfInput()).generatesMatchedText()
+        p.parser = SequenceParser(Optional(p), +"a")
+        val parser = SequenceParser(p, EndOfInput()).generatesMatchedText()
 
         checkParsing(parser, false, "")
         checkParsing(parser, false, "b")
@@ -314,8 +314,8 @@ class TestParser {
     @Test
     fun testRightRecursiveParsing() {
         val p = LazyParser()
-        p.parser = Sequence(+"a", Optional(p))
-        val parser = Sequence(p, EndOfInput()).generatesMatchedText()
+        p.parser = SequenceParser(+"a", Optional(p))
+        val parser = SequenceParser(p, EndOfInput()).generatesMatchedText()
 
         checkParsing(parser, false, "")
         checkParsing(parser, false, "b")
@@ -335,9 +335,9 @@ class TestParser {
         val num = CharParser(ONE_OR_MORE, '0'..'9')
         val x = LazyParser()
         val expr = LazyParser()
-        expr.parser = AnyOf(Sequence(x, +"-", num), num)
+        expr.parser = AnyOf(SequenceParser(x, +"-", num), num)
         x.parser = expr
-        val parser = Sequence(expr, EndOfInput()).generatesMatchedText()
+        val parser = SequenceParser(expr, EndOfInput()).generatesMatchedText()
 
         checkResultWithSameReturn(parser, "34")
         checkResultWithSameReturn(parser, "2-1")
@@ -358,9 +358,9 @@ class TestParser {
         val num = CharParser(ONE_OR_MORE, '0'..'9')
         val x = LazyParser()
         val expr = LazyParser()
-        expr.parser = AnyOf(Sequence(num, +"-", x), num)
+        expr.parser = AnyOf(SequenceParser(num, +"-", x), num)
         x.parser = expr
-        val parser = Sequence(expr, EndOfInput()).generatesMatchedText()
+        val parser = SequenceParser(expr, EndOfInput()).generatesMatchedText()
 
         checkResultWithSameReturn(parser, "34")
         checkResultWithSameReturn(parser, "2-1")

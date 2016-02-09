@@ -7,7 +7,7 @@ import org.dungeongardener.util.parser.ParserBase
 /**
  *
  */
-class Sequence(vararg var parsers: Parser) : ParserBase() {
+class SequenceParser(vararg var parsers: Parser) : ParserBase() {
 
     constructor(vararg texts: String) : this(*(texts.map { StringParser(it) }).toTypedArray())
 

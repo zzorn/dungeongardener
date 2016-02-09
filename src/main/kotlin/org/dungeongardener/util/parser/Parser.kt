@@ -86,22 +86,22 @@ interface Parser {
     /**
      * Add two parsers to create a sequence
      */
-    operator fun plus(other: Parser): Sequence {
-        return Sequence(this, other)
+    operator fun plus(other: Parser): SequenceParser {
+        return SequenceParser(this, other)
     }
 
     /**
      * Add string parser to create a sequence
      */
-    operator fun plus(other: String): Sequence {
-        return Sequence(this, StringParser(other))
+    operator fun plus(other: String): SequenceParser {
+        return SequenceParser(this, StringParser(other))
     }
 
     /**
      * Add char parser to create a sequence
      */
-    operator fun plus(other: CharSequence): Sequence {
-        return Sequence(this, CharParser(other))
+    operator fun plus(other: CharSequence): SequenceParser {
+        return SequenceParser(this, CharParser(other))
     }
 
     /**
