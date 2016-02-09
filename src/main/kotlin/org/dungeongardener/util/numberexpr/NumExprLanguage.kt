@@ -12,7 +12,7 @@ class NumExprLanguage() : Language<NumExpr>() {
     }
 
     override val whitespace = parser("whitespace") {
-        zeroOrMore(oneOrMoreChars(" \n\t"), comment)
+        zeroOrMore(any(oneOrMoreChars(" \n\t"), comment))
     }
 
     val positiveIntegerNumber = parserWithWhitespace("positiveIntegerNumber") {
@@ -35,7 +35,7 @@ class NumExprLanguage() : Language<NumExpr>() {
 
     val unaryMinus = (+"-" + ws + factor).generates { NegExpr(it.pop()) }
 
-    val constant = (number).generates { ConstantExpr(it.pop()) }
+    val constant = (number + ws).generates { ConstantExpr(it.pop()) }
 
     val dice = (positiveIntegerNumber + char("dD") + positiveIntegerNumber + ws).generates {
         DiceExpr(it.pop(), it.pop())
@@ -46,15 +46,15 @@ class NumExprLanguage() : Language<NumExpr>() {
     init {
         factor.parser = any(parens, unaryMinus, dice, constant, reference)
 
-        term.parser = factor - opt(any(
+        term.parser = factor + opt(any(
                 (+"*" - term).generates { MulExpr(it.pop(1), it.pop()) },
                 (+"/" - term).generates { DivExpr(it.pop(1), it.pop()) }
-        )) + ws
+        ))
 
-        expression.parser = term - opt(any(
+        expression.parser = term + opt(any(
                     (+"+" - expression).generates { SumExpr(it.pop(1), it.pop()) },
                     (+"-" - expression).generates { SubExpr(it.pop(1), it.pop()) }
-        )) + ws
+        ))
     }
 
     override val parser: Parser = ws + expression + endOfInput
