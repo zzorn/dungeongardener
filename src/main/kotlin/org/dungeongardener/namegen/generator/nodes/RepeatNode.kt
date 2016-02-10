@@ -11,7 +11,7 @@ import org.flowutils.random.RandomSequence
 data class RepeatNode<T, R>(val times: NumExpr, val node: GeneratorNode<T, R>): GeneratorNode<T, R> {
 
     override fun generate(random: RandomSequence, context: GeneratorContext<T, R>, builder: ContentBuilder<T, R>) {
-        val repeats = times.evaluate(context.numContext).toInt()
+        val repeats = times.evaluate(context.context).toInt()
 
         for (i in 1 .. repeats) {
             node.generate(random, context, builder)

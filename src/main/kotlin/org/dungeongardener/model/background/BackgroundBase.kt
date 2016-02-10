@@ -3,5 +3,5 @@ package org.dungeongardener.model.background
 /**
  *
  */
-abstract class OccupationBase() : Occupation {
+abstract class BackgroundBase() : Background {
 }

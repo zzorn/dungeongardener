@@ -2,7 +2,7 @@ package org.dungeongardener.namegen
 
 import org.dungeongardener.namegen.generator.ContentBuilder
 import org.dungeongardener.namegen.generator.nodes.GeneratorNode
-import org.dungeongardener.util.numberexpr.NumContext
+import org.dungeongardener.util.Context
 import org.flowutils.random.RandomSequence
 import org.flowutils.random.XorShift
 
@@ -19,7 +19,7 @@ interface GeneratorContext<T, R> {
     /**
      * Context used for evaluating various numerical values and constants
      */
-    val numContext: NumContext
+    val context: Context
 
     /**
      * @return generator with the specified id, or null if no such generator found.

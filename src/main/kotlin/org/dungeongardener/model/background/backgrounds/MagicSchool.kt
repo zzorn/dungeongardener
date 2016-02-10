@@ -1,7 +1,7 @@
 package org.dungeongardener.model.background.backgrounds
 
+import org.dungeongardener.model.background.BackgroundBase
 import org.dungeongardener.model.background.BackgroundCallback
-import org.dungeongardener.model.background.OccupationBase
 import org.dungeongardener.model.creature.Creature
 import org.dungeongardener.model.skill.Skill
 import org.dungeongardener.model.skill.Spell
@@ -14,7 +14,7 @@ class MagicSchool(override val name: String,
                   val magicTypeSkill: Skill,
                   val spellsInSchool: List<Spell>,
                   val skillsInSchool: List<Skill>,
-                  val tuition: Double = 300.0): OccupationBase() {
+                  val tuition: Double = 300.0): BackgroundBase() {
 
     override fun enter(character: Creature, callback: BackgroundCallback) {
         var year = 1
@@ -23,7 +23,7 @@ class MagicSchool(override val name: String,
         character.basicStats.int
         callback.note("")
 
-
+/*
         node("Entrance test") {
             if (not test(INT)) end("Failed entrance test")
         }
@@ -53,5 +53,6 @@ class MagicSchool(override val name: String,
             }
 
         }
+*/
     }
 }

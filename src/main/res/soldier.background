@@ -1,8 +1,25 @@
 
-background(Soldier, "Enlist as a soldier", age <= 20 and easyTest(str)) {
+
+weaponSkills = skillTable("Weapon Skills") [
+    sword,
+    shield,
+    axe,
+    bow,
+    spear
+]
+
+
+background(Soldier, "Enlist as a soldier", easyTest(str)) {
     rank = "Enlisted"
 
+    activity("Bootcamp") {
+        learn(random(weaponSkills))
+    }
 
+
+
+
+    while ()
 
 
 

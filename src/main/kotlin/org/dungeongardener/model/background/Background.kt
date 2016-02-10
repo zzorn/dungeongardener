@@ -5,7 +5,7 @@ import org.dungeongardener.model.creature.Creature
 /**
  * Something that a character can spend time in as part of their background.
  */
-interface Occupation {
+interface Background {
 
     val name: String
     val description: String

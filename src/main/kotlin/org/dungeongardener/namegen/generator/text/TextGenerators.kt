@@ -4,8 +4,8 @@ import org.dungeongardener.namegen.GeneratorContext
 import org.dungeongardener.namegen.WeightedMap
 import org.dungeongardener.namegen.generator.ContentBuilder
 import org.dungeongardener.namegen.generator.nodes.*
-import org.dungeongardener.util.numberexpr.NumContext
-import org.dungeongardener.util.numberexpr.SimpleNumContext
+import org.dungeongardener.util.Context
+import org.dungeongardener.util.SimpleContext
 import org.dungeongardener.util.parser.Multiplicity.ONE_OR_MORE
 import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.parsers.*
@@ -38,7 +38,7 @@ class TextGenerators(val markovText: String? = null): GeneratorContext<String, S
         if (markovText != null) parseGenerators(markovText)
     }
 
-    override val numContext : NumContext = SimpleNumContext()
+    override val context: Context = SimpleContext()
 
     val readOnlyGenerators: Map<String, GeneratorNode<String, String>>
         get() = generators
