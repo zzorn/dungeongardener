@@ -23,11 +23,11 @@ data class Creature(
         var maxHitpoints: Double = 0.0,
         var maxMana: Double = 0.0,
         var hitpoints: Double = maxHitpoints,
-        var mana: Double = maxMana
+        var mana: Double = maxMana) {
 
 
-        ) {
-
-
+    fun addSkillExp(skill: Skill, skillExp: Double) {
+        skills.put(skill, skill.calculateValueWithAddedExp(skills.get(skill) ?: 0.0, skillExp))
+    }
 
 }

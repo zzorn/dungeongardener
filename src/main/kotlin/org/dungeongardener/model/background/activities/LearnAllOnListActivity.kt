@@ -11,11 +11,12 @@ import org.dungeongardener.util.numberexpr.NumExpr
  */
 class LearnAllOnListActivity(val expAmount: NumExpr, val skillList: List<Skill>) : SimpleActivity() {
 
-    override fun enter(character: Creature, callback: BackgroundCallback, backgroundState: Context): Boolean {
+    override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
 
-        val exp = expAmount.evaluate(backgroundState)
-
-        // TODO: Add exp to all skills
+        // Add exp to all skills
+        for (skill in skillList) {
+            character.addSkillExp(skill, expAmount.evaluate(context))
+        }
 
         return true
     }

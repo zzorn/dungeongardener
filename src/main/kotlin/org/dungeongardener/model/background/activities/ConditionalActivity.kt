@@ -13,15 +13,15 @@ class ConditionalActivity(val activityOnSuccess: Activity,
                           val condition: BoolExpr,
                           override val name: String = "Condition ${condition}") : Activity {
 
-    override fun enter(character: Creature, callback: BackgroundCallback, backgroundState: Context): Boolean {
+    override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
 
-        val success = condition.evaluate(backgroundState)
+        val success = condition.evaluate(context)
 
         if (success) {
-            activityOnSuccess.enter(character, callback, backgroundState)
+            activityOnSuccess.enter(character, callback, context)
         }
         else {
-            if (activityOnFailure != null) activityOnFailure.enter(character, callback, backgroundState)
+            if (activityOnFailure != null) activityOnFailure.enter(character, callback, context)
             else return false
         }
 

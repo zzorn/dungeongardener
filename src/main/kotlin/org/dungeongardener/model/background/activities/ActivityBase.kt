@@ -1,6 +1,7 @@
 package org.dungeongardener.model.background.activities
 
 import org.dungeongardener.model.background.BackgroundCallback
+import org.dungeongardener.model.background.InterruptActivityException
 import org.dungeongardener.model.creature.Creature
 import org.dungeongardener.util.Context
 import java.util.*
@@ -16,11 +17,11 @@ abstract class ActivityBase() : Activity {
         subActivities.add(activity)
     }
 
-    override final fun enter(character: Creature, callback: BackgroundCallback, backgroundState: Context): Boolean {
+    override final fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
 
         callback.enteredActivity(this)
 
-        return try {doEnter(character, callback, backgroundState) }
+        return try {doEnter(character, callback, context) }
             catch (e: InterruptActivityException) {
                 if (e.targetActivity == name) {
                     // We should resume at this activity

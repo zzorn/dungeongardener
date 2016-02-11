@@ -9,7 +9,12 @@ import org.dungeongardener.model.skill.Skill
 interface BackgroundCallback {
 
     fun note(message: String)
+
+    /**
+     * Asks if it is ok to pay the specified sum
+     */
     fun pay(message: String, gold: Double): Boolean
+
     fun skillExp(skill: Skill, exp: Double)
 
     /**

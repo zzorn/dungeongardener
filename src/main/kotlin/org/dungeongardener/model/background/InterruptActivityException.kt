@@ -1,4 +1,4 @@
-package org.dungeongardener.model.background.activities
+package org.dungeongardener.model.background
 
 /**
  *

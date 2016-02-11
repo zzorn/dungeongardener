@@ -11,12 +11,17 @@ import org.dungeongardener.util.numberexpr.NumExpr
  */
 class LearnRandomFromListActivity(val expAmount: NumExpr, val rollCount: NumExpr, val skillList: List<Skill>) : SimpleActivity() {
 
-    override fun enter(character: Creature, callback: BackgroundCallback, backgroundState: Context): Boolean {
+    override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
 
-        val exp = expAmount.evaluate(backgroundState)
-        val rolls = rollCount.evaluate(backgroundState)
-
-        // TODO: Roll on skills lists, add skills to character
+        if (skillList.isNotEmpty()) {
+            // Roll on skills lists, add skills to character
+            val rolls = rollCount.evaluate(context).toInt()
+            for (i in 1..rolls) {
+                // Add exp to random skill
+                val skill = context.random.nextElement(skillList)
+                character.addSkillExp(skill, expAmount.evaluate(context))
+            }
+        }
 
         return true
     }

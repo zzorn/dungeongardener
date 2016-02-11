@@ -15,6 +15,6 @@ interface Activity {
      * @return true if entrance to the activity was successful, false if the activity could not be entered and it had to
      * be immediately scrapped before time was spent on it (possible to choose another activity instead of it).
      */
-    fun enter(character: Creature, callback: BackgroundCallback, backgroundState: Context): Boolean
+    fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean
 
 }
