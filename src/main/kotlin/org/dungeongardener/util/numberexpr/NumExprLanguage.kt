@@ -7,54 +7,38 @@ import org.flowutils.Symbol
 
 class NumExprLanguage() : LanguageBase<NumExpr>() {
 
-    val comment = parser("comment") {
-        +"#" + zeroOrMoreCharsExcept("\n") + "\n"
-    }
 
-    override val whitespace = parser("whitespace") {
-        zeroOrMore(any(oneOrMoreChars(" \n\t"), comment))
-    }
-
-    val positiveIntegerNumber = parserWithWhitespace("positiveIntegerNumber") {
-        oneOrMoreChars('0'..'9').generates {
-            it.text.toInt()
-        }
-    }
-
-    val number = parserWithWhitespace("number") {
-        (opt(+"-") + oneOrMoreChars('0'..'9') + opt(+".", oneOrMoreChars('0'..'9'))).generates {
-            it.text.toDouble()
-        }
-    }
-
-    val term = lazy
     val expression = lazy
     val factor = lazy
 
     val parens = +"(" - expression - ")" + ws
-
     val unaryMinus = (+"-" + ws + factor).generates { NegExpr(it.pop()) }
-
-    val constant = (number + ws).generates { ConstantExpr(it.pop()) }
-
-    val dice = (positiveIntegerNumber + char("dD") + positiveIntegerNumber + ws).generates {
+    val constant = (double + ws).generates { ConstantExpr(it.pop()) }
+    val dice = (positiveInteger + char("dD") + positiveInteger + ws).generates {
         DiceExpr(it.pop(), it.pop())
     }
-
     val reference = identifier.generates { ReferenceExpr(Symbol.get(it.pop())) } + ws
+    val functions2 = functionParser2<NumExpr, NumExpr>(expression, mapOf(
+            "random" to { start, end -> RandomExpr(start, end) },
+            "gauss" to { mean, stdDev -> GaussianExpr(mean, stdDev) },
+            "max" to { a, b -> Fun2Expr("max", a, b, {x, y -> if (x >= y) x else y}) },
+            "min" to { a, b -> Fun2Expr("min", a, b, {x, y -> if (x <= y) x else y}) }
+    ))
+    val functions3 = functionParser3<NumExpr, NumExpr>(expression, mapOf(
+            "clamp" to { value, min, max -> ClampExpr(value, min, max) }
+    ))
 
     init {
-        factor.parser = any(parens, unaryMinus, dice, constant, reference)
+        addEndOfLineComment("#")
 
-        term.parser = factor + opt(any(
-                (+"*" - term).generates { MulExpr(it.pop(1), it.pop()) },
-                (+"/" - term).generates { DivExpr(it.pop(1), it.pop()) }
-        ))
+        factor.parser = any(parens, unaryMinus, dice, constant, functions3, functions2, reference)
 
-        expression.parser = term + opt(any(
-                    (+"+" - expression).generates { SumExpr(it.pop(1), it.pop()) },
-                    (+"-" - expression).generates { SubExpr(it.pop(1), it.pop()) }
-        ))
+        expression.parser = expressionTree<NumExpr>(factor,
+                "*" to { a, b -> MulExpr(a, b) },
+                "/" to { a, b -> DivExpr(a, b) },
+                "+" to { a, b -> SumExpr(a, b) },
+                "-" to { a, b -> SubExpr(a, b) }
+                )
     }
 
     override val parser: Parser = ws + expression + endOfInput

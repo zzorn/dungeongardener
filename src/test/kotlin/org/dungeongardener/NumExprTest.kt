@@ -27,11 +27,14 @@ class NumExprTest {
         check(9.0, "2 * (3 + 1) #casablanca\n+1")
         check(-28.1, "2*-(9+2.5*2)---0.1")
         check(15.0, "3 + foo * 6")
+        check(15.0, "max(7, 7+7)+1")
 
         val lang = NumExprLanguage()
         val context = SimpleContext()
         for (i in 1..10)
             println("Dice test 3d6: " + lang.parseFirst(" 3D6").evaluate(context))
+        for (i in 1..10)
+            println("Gauss test: " + lang.parseFirst("clamp(gauss(0, 2), 0, 5) + 1000").evaluate(context))
     }
 
     private fun check(expected: Double, expression: String) {

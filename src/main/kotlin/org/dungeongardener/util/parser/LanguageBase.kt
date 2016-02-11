@@ -366,4 +366,41 @@ abstract class LanguageBase<T>() : Language<T>() {
         }
     }
 
+    interface FunctionNodeBuilder3<P, R> {
+        fun createNode(function: (P, P, P) -> R, functionName: String, functionParameterNode1: Any, functionParameterNode2: Any, functionParameterNode3: Any): Any
+    }
+
+    /**
+     * Creates a parser that parses functions with two parameters defined in the specified name to function map,
+     * and creates a function node for them using the provided functionNodeBuilder (defaulting to a builder that
+     * just passes the parsed parameter nodes from the result stack to the function and saves the result of the function on the result stack).
+     */
+    fun <P, R>functionParser3(parameterParser: Parser,
+                              functions: Map<String, (P, P, P) -> R>,
+                              parameterBlockStart: String = "(",
+                              parameterSeparator: String = ",",
+                              parameterBlockEnd: String = ")",
+                              functionNodeBuilder: FunctionNodeBuilder3<P, R> = object: FunctionNodeBuilder3<P, R> {
+        override fun createNode(function: (P, P, P) -> R, functionName: String, functionParameterNode1: Any, functionParameterNode2: Any, functionParameterNode3: Any): Any {
+            return function(functionParameterNode1 as P, functionParameterNode2 as P, functionParameterNode3 as P) as Any
+        }
+    }): Parser {
+        return SequenceParser(
+                DynamicAnyOfStrings(functions.keys).generatesMatchedText(), ws,
+                +parameterBlockStart, ws,
+                parameterParser, ws,
+                +parameterSeparator, ws,
+                parameterParser, ws,
+                +parameterSeparator, ws,
+                parameterParser, ws,
+                +parameterBlockEnd, ws).generates {
+            val parameterNode3 = it.pop<Any>()
+            val parameterNode2 = it.pop<Any>()
+            val parameterNode1 = it.pop<Any>()
+            val functionName = it.pop<String>()
+            val function = functions.get(functionName) ?: throw ParsingError("Could not find function $functionName")
+            functionNodeBuilder.createNode(function, functionName, parameterNode1, parameterNode2, parameterNode3)
+        }
+    }
+
 }
