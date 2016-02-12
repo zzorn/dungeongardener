@@ -18,6 +18,7 @@ import java.lang.Math.*
 // TODO: Add statements, assignmentStatements, imports, string/other generators?  Maybe use other char than + for generator concatenation.
 // TODO: Maybe use different language to load a file depending on the postfix, but collect the loaded things in the same context?
 // TODO: Add lists and maps
+// TODO: Possible to either parse program that defines named expressions, or to just parse a single expression.
 class GenLang() : LanguageBase<Expression>() {
 
     val functions = FunctionRegistry()
