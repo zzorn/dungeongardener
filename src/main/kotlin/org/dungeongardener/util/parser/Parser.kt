@@ -80,6 +80,8 @@ interface Parser {
     fun cut(): Parser = Cut(this)
 
     fun generatesMatchedText(): Parser = GeneratingParser(this, {it.text})
+    fun generatesContentList(): Parser = GeneratingParser(this, { it.popCurrentNodeResults<Any?>() })
+
     infix fun generates(generator: (GeneratorContext) -> Any): Parser = GeneratingParser(this, generator)
     infix fun process(processor: (GeneratorContext) -> Unit): Parser = ProcessingParser(this, processor)
 

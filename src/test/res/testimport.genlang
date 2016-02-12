@@ -1,0 +1,11 @@
+
+import imported1.genlang
+import testpack.imported2.genlang
+
+bar = "foo"
+
+zip = 4
+
+theAnswer = (bip+bap) * zip + zap
+
+zap = 2

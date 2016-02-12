@@ -2,6 +2,7 @@ package org.dungeongardener.util.parser
 
 import org.dungeongardener.util.genlang.nodes.InfixExpr
 import org.dungeongardener.util.parser.parsers.*
+import org.flowutils.Symbol
 import java.util.*
 
 /**
@@ -9,7 +10,9 @@ import java.util.*
  *
  * Adds support for operators with precedence, builtin functions, comment types, and various primitive and collection parsing.
  */
-abstract class LanguageBase<T>() : Language<T>() {
+abstract class LanguageBase<T>(override val extension: Symbol) : Language<T>() {
+
+    constructor(extension: String) : this(Symbol.get(extension))
 
     private class DynamicAnyOf(val parsers: Collection<Parser> = ArrayList()): ParserBase() {
         override fun doParse(parserNode: ASTNode): Boolean {
@@ -71,7 +74,7 @@ abstract class LanguageBase<T>() : Language<T>() {
     /**
      * Parses English letters or number or underscore in upper or lower case (a..z and A..Z) by default
      */
-    open val identifierPart = CharParser('a'..'z', 'A'..'Z', '0'..'9', '_'..'_').named("letter")
+    open val identifierPart = CharParser('a'..'z', 'A'..'Z', '0'..'9', '_'..'_').named("identifierPart")
 
     /**
      * Parses a typical programming language identifier, starting with a letter or underscore and followed by zero or more letters, underscores, and numbers.
@@ -79,7 +82,8 @@ abstract class LanguageBase<T>() : Language<T>() {
      */
     open val identifier = SequenceParser(
             CharParser('a'..'z', 'A'..'Z', '_'..'_'),
-            CharParser(Multiplicity.ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9', '_'..'_')
+            CharParser(Multiplicity.ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9', '_'..'_'),
+            not(identifierPart)
     ).named("identifier").generatesMatchedText()
 
     /**

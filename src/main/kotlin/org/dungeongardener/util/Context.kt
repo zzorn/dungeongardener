@@ -1,5 +1,6 @@
 package org.dungeongardener.util
 
+import org.dungeongardener.util.genlang.nodes.Expression
 import org.flowutils.Symbol
 import org.flowutils.random.RandomSequence
 
@@ -29,6 +30,11 @@ interface Context {
      * @return the referenced item of the specified type.  Throws exception if not found.
      */
     fun <T>getReference(ref: String): T = getReference<T>(Symbol.get(ref))
+
+    /**
+     * @return the evaluated expression with the specified id.  Throws exception if not found.
+     */
+    fun <T>evaluateExpression(ref: String, context: Context): T = getReference<Expression>(Symbol.get(ref)).evaluate(context)
 
     fun setReference(name: String, value: Any)
 

@@ -1,9 +1,11 @@
 package org.dungeongardener.util.parser
 
+import org.dungeongardener.util.genlang.nodes.Definitions
 import org.dungeongardener.util.parser.Multiplicity.ONE_OR_MORE
 import org.dungeongardener.util.parser.Multiplicity.ZERO_OR_MORE
 import org.dungeongardener.util.parser.parsers.*
 import org.dungeongardener.util.parser.result.ParsingResult
+import org.flowutils.Symbol
 import java.io.File
 
 /**
@@ -11,7 +13,20 @@ import java.io.File
  */
 abstract class Language<T> {
 
+    /**
+     * Parses a part of the language, e.g. an expression.
+     */
     abstract val parser: Parser
+
+    /**
+     * Parses a complete language file for this type of language.
+     */
+    abstract val fileParser: Parser
+
+    /**
+     * Extension used for this language by default when loading from disk.
+     */
+    abstract val extension: Symbol
 
     /**
      * Short form for the whitespace parser.
@@ -47,6 +62,10 @@ abstract class Language<T> {
      * @throws ParsingError if there is no results, or if the parse failed.
      */
     fun parseFirst(inputFile: File, debugOutput: Boolean = false) : T = parser.parseFirst(inputFile, debugOutput = debugOutput)
+
+    fun parseProgram(file: File, debugOutput: Boolean = false): Definitions {
+        return fileParser.parseFirst(file, debugOutput)
+    }
 
     protected fun <P : Parser> parser(name: String? = null, parserFunc: () -> P): P {
         var parser = parserFunc()
@@ -144,6 +163,7 @@ abstract class Language<T> {
      * Shorthand for AnyOf
      */
     protected operator fun Parser.div(other: Parser): AnyOf = AnyOf(this, other)
+
 
 
 }

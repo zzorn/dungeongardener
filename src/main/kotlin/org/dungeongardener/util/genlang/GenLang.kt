@@ -19,7 +19,7 @@ import java.lang.Math.*
 // TODO: Maybe use different language to load a file depending on the postfix, but collect the loaded things in the same context?
 // TODO: Add lists and maps
 // TODO: Possible to either parse program that defines named expressions, or to just parse a single expression.
-class GenLang() : LanguageBase<Expression>() {
+class GenLang() : LanguageBase<Expression>("genlang") {
 
     val functions = FunctionRegistry()
 
@@ -28,6 +28,8 @@ class GenLang() : LanguageBase<Expression>() {
     val reference = identifier.generates { ReferenceExpr(Symbol.get(it.pop())) } + ws
 
     val numberConstant = (double + ws).generates { ConstantExpr(it.pop()) }
+
+    val stringConstant = (quotedString + ws).generates { ConstantExpr(it.pop()) }
 
     val boolConstant = any(
             keyword("true").generates { ConstantExpr(true) },
@@ -44,47 +46,47 @@ class GenLang() : LanguageBase<Expression>() {
         IfElseExpr(it.pop(2), it.pop(1), it.pop())
     }
 
-    val atom = any(parens, dice, boolConstant, numberConstant, ifExpr, functionParser(functions, expression), reference)
+    val atom = any(parens, dice, boolConstant, numberConstant, stringConstant, ifExpr, functionParser(functions, expression), reference).named("atom")
 
-    val unaryMinus = any((+"-" + ws + atom).generates { UnaryExpr<Double>("-", it.pop(), { b -> -b}) }, atom)
+    val unaryMinus = any((+"-" + ws + atom).generates { UnaryExpr<Double>("-", it.pop(), { b -> -b}) }, atom).named("unaryMinus")
 
-    val unaryNot = any((keyword("not") + unaryMinus).generates { UnaryExpr<Boolean>("not", it.pop(), { b -> !b}) }, unaryMinus)
+    val unaryNot = any((keyword("not") + unaryMinus).generates { UnaryExpr<Boolean>("not", it.pop(), { b -> !b}) }, unaryMinus).named("unaryNot")
 
     val numExpression = operatorNodeParser<Double>(unaryNot,
             "*" to { a, b -> a * b },
             "/" to { a, b -> a / b },
             "+" to { a, b -> a + b },
             "-" to { a, b -> a - b }
-    )
+    ).named("numExpression")
 
     val comparisonExpression = operatorNodeParser<Double>(numExpression,
             "<" to { a, b -> a < b },
             ">" to { a, b -> a > b },
             "<=" to { a, b -> a <= b },
             ">=" to { a, b -> a >= b }
-    )
+    ).named("comparisonExpression")
 
     val equivalenceExpression = operatorNodeParser<Any>(comparisonExpression,
             "==" to { a, b -> a == b },
             "!=" to { a, b -> a != b }
-    )
+    ).named("equivalenceExpression")
 
     val boolExpression = operatorNodeParser<Boolean>(equivalenceExpression,
             "and" to { a, b -> a && b },
             "or" to { a, b -> a || b }
-    )
+    ).named("boolExpression")
 
 
 
-    val assignment = ((identifier - "=" - expression).generates {  }).cut()
-
+    val assignment = (identifier + ws + (+"=").cut() + ws + expression + ws).generates { AssignmentStatement(it.pop(1), it.pop()) }
     val statement = any(assignment)
 
-    val packageRef = (identifier + zeroOrMore(+"." + identifier)).generates { it.text } + ws
+    val packageRef = (identifier + zeroOrMore(+"." + identifier)).generates { it.popCurrentNodeResults<String>() } + ws
+    val import = keyword("import") + ws + packageRef.generates { Import(it.pop<List<String>>()) }
 
-    val import = keyword("import") + packageRef
-
-    val program = zeroOrMore(import) + zeroOrMore(statement)
+    override val fileParser = ws + (zeroOrMore(import).generatesContentList() + zeroOrMore(statement).generatesContentList()).generates {
+        SimpleDefinitions(it.pop(1), it.pop())
+    } + endOfInput
 
     init {
         expression.parser = boolExpression

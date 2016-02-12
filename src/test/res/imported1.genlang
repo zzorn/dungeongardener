@@ -1,0 +1,3 @@
+import testpack.imported3.genlang
+
+bap = pop*2

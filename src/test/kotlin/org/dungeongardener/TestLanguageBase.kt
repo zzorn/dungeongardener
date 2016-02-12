@@ -13,7 +13,7 @@ import java.lang.Math.*
  */
 class TestLanguageBase {
 
-    class TestLanguageBase(): LanguageBase<Any>() {
+    class TestLanguageBase(): LanguageBase<Any>("test") {
 
         init {
             addBlockComment("/**", "**/")
@@ -29,7 +29,9 @@ class TestLanguageBase {
         val m2 = mapParserWithoutStartEndMarkers(oneOrMore(any("a", "b")).generatesMatchedText(), double)
         val m3 = mapParserWithoutStartEndMarkers(oneOrMore(any("a", "b")).generatesMatchedText(), double, elementSeparator = autoMatch, keyValueSeparator = autoMatch)
 
+        val stringParser: Parser = ws + quotedString
         override val parser: Parser = +"foo"
+        override val fileParser: Parser = +"bar"
     }
 
     val lang = TestLanguageBase()
@@ -69,6 +71,8 @@ class TestLanguageBase {
         assertEquals("_", lang.identifier.parseFirst<String>("_"))
         assertEquals("__bar", lang.identifier.parseFirst<String>("__bar"))
         assertEquals("Arguhan_3b2", lang.identifier.parseFirst<String>("Arguhan_3b2"))
+
+        assertEquals("foobar", lang.stringParser.parseFirst<String>("   \"foobar\"  "))
     }
 
     @Test
