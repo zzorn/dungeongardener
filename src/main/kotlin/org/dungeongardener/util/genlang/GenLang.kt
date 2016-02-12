@@ -16,10 +16,8 @@ import java.lang.Math.*
  * Generic language
  */
 // TODO: Add statements, assignmentStatements, imports, string/other generators?  Maybe use other char than + for generator concatenation.
-// TODO: Maybe use different language to load a file depending on the postfix, but collect the loaded things in the same context?
 // TODO: Add lists and maps
-// TODO: Possible to either parse program that defines named expressions, or to just parse a single expression.
-class GenLang() : LanguageBase<Expression>("genlang") {
+open class GenLang(name: String = "genlang") : LanguageBase<Definitions>(name) {
 
     val functions = FunctionRegistry()
 
@@ -46,7 +44,7 @@ class GenLang() : LanguageBase<Expression>("genlang") {
         IfElseExpr(it.pop(2), it.pop(1), it.pop())
     }
 
-    val atom = any(parens, dice, boolConstant, numberConstant, stringConstant, ifExpr, functionParser(functions, expression), reference).named("atom")
+    open val atom = any(parens, dice, boolConstant, numberConstant, stringConstant, ifExpr, functionParser(functions, expression), reference).named("atom")
 
     val unaryMinus = any((+"-" + ws + atom).generates { UnaryExpr<Double>("-", it.pop(), { b -> -b}) }, atom).named("unaryMinus")
 
@@ -79,28 +77,35 @@ class GenLang() : LanguageBase<Expression>("genlang") {
 
 
     val assignment = (identifier + ws + (+"=").cut() + ws + expression + ws).generates { AssignmentStatement(it.pop(1), it.pop()) }
-    val statement = any(assignment)
+    val statement = lazy
 
-    val packageRef = (identifier + zeroOrMore(+"." + identifier)).generates { it.popCurrentNodeResults<String>() } + ws
-    val import = keyword("import") + ws + packageRef.generates { Import(it.pop<List<String>>()) }
+    val packageRef = ((identifier + zeroOrMore(+"." + identifier)).generates { it.popCurrentNodeResults<String>() } + ws).named("packageRef")
+    val import = (keyword("import") + ws + packageRef).generates { Import(it.pop<List<String>>()) }.named("import")
 
-    override val fileParser = ws + (zeroOrMore(import).generatesContentList() + zeroOrMore(statement).generatesContentList()).generates {
+    val fileParser = ws + (zeroOrMore(import).generatesContentList() + zeroOrMore(statement).generatesContentList()).generates {
         SimpleDefinitions(it.pop(1), it.pop())
     } + endOfInput
 
     init {
+        statement.parser = assignment
         expression.parser = boolExpression
 
-        addEndOfLineComment("#")
-        addEndOfLineComment("//")
-        addBlockComment("/*", "*/")
+        initComments()
 
         addBuiltinMathFunctions()
     }
 
-    override val parser: Parser = ws + expression + endOfInput
+    protected open fun initComments() {
+        addEndOfLineComment("#")
+        addEndOfLineComment("//")
+        addBlockComment("/*", "*/")
+    }
 
-    private fun addBuiltinMathFunctions() {
+    val expressionParser: Parser = ws + expression + endOfInput
+
+    override val parser: Parser = fileParser
+
+    protected open fun addBuiltinMathFunctions() {
 
         functions.addFun<Double>("random", 2) { it.context.random.nextDouble(it.a, it.b) }
         functions.addFun<Double>("randomInt", 2) { it.context.random.nextInt(it.a.toInt(), it.b.toInt()).toDouble() }

@@ -6,9 +6,10 @@ import org.dungeongardener.model.creature.Attribute
  *
  */
 open class Skill(val name: String,
-                 val description: String,
                  val baseStat: Attribute,
-                 val difficulty: Double = 1.0) {
+                 val difficulty: Double = 1.0,
+                 val description: String,
+                 var category: SkillCategory? = null) {
 
     /**
      * Calculate the skill value after the specified amount of experience is added to it.
@@ -40,6 +41,11 @@ open class Skill(val name: String,
      * Function used to determine difficulty of skill progression.  Basically cost at level x is x^2 / 100, rounded up.
      */
     private fun skillCostFunction(skillValue: Int): Int = Math.ceil(skillValue * skillValue / 100.0).toInt()
+
+    override fun toString(): String{
+        return "${category?.name ?: ""}: $name ($baseStat $difficulty) $description"
+    }
+
 
 }
 

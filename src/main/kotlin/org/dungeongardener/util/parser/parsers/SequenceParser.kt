@@ -14,7 +14,7 @@ class SequenceParser(vararg var parsers: Parser) : ParserBase() {
     override fun doParse(parserNode: ASTNode): Boolean {
 
         for (parser in parsers) {
-            if (!parser.parse(parserNode)) {
+            if (parser == null || !parser.parse(parserNode)) {
                 return false
             }
         }

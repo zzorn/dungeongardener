@@ -1,6 +1,7 @@
 package org.dungeongardener.model.background.activities
 
 import org.dungeongardener.model.Table
+import org.dungeongardener.model.World
 import org.dungeongardener.model.background.BackgroundCallback
 import org.dungeongardener.model.creature.Creature
 import org.dungeongardener.util.Context
@@ -15,9 +16,9 @@ class TableActivity(val activityTable: Table<Activity>, val modifier: Expression
     override val name: String
         get() = activityTable.name
 
-    override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
+    override fun enter(character: Creature, callback: BackgroundCallback, context: Context, world: World): Boolean {
         val randomActivity = activityTable.randomize(context, modifier.evaluate(context))
-        if (randomActivity != null) randomActivity.enter(character, callback, context)
+        if (randomActivity != null) randomActivity.enter(character, callback, context, world)
         return true
     }
 }

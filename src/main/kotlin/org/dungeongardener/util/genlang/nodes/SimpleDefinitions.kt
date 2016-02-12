@@ -10,7 +10,7 @@ class SimpleDefinitions(override val imports: List<Import>, val statements: List
     /**
      * This assumes all imports are already imported.
      */
-    override fun process(context: Context, importContext: ImportContext) {
+    override fun process(context: Context) {
         for (statement in statements) {
             statement.process(context)
         }

@@ -34,7 +34,7 @@ interface Context {
     /**
      * @return the evaluated expression with the specified id.  Throws exception if not found.
      */
-    fun <T>evaluateExpression(ref: String, context: Context): T = getReference<Expression>(Symbol.get(ref)).evaluate(context)
+    fun <T>evaluateExpression(ref: String, context: Context = this): T = getReference<Expression>(Symbol.get(ref)).evaluate(context)
 
     fun setReference(name: String, value: Any)
 

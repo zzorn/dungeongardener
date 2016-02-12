@@ -1,0 +1,21 @@
+import skills.skills
+
+ordered("Vagabond") {
+
+    repeat(2d3) {
+        choice("You are hungry.  What do you do?") {
+
+            ordered("Hunt") {
+                note("You hunt some deer")
+                learn("Survival in Forest", 1d6 * 10)
+            }
+
+            note("Pick some Apples")
+
+            ordered("Rob") {
+                note("You rob some farmers")
+                learn("Intimidate", 1d6 * 10)
+            }
+        }
+    }
+}

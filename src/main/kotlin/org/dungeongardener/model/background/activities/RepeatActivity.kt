@@ -1,5 +1,6 @@
 package org.dungeongardener.model.background.activities
 
+import org.dungeongardener.model.World
 import org.dungeongardener.model.background.BackgroundCallback
 import org.dungeongardener.model.creature.Creature
 import org.dungeongardener.util.Context
@@ -10,11 +11,11 @@ import org.dungeongardener.util.genlang.nodes.Expression
  */
 class RepeatActivity(val repeatCount: Expression, val activity: Activity) : SimpleActivity() {
 
-    override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
+    override fun enter(character: Creature, callback: BackgroundCallback, context: Context, world: World): Boolean {
         val repeats = repeatCount.evaluate<Double>(context).toInt()
 
         for(i in 1 .. repeats) {
-            val success = activity.enter(character, callback, context)
+            val success = activity.enter(character, callback, context, world)
             if (!success) return false
         }
 

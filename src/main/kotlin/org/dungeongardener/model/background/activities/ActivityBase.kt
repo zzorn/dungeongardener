@@ -1,5 +1,6 @@
 package org.dungeongardener.model.background.activities
 
+import org.dungeongardener.model.World
 import org.dungeongardener.model.background.BackgroundCallback
 import org.dungeongardener.model.background.InterruptActivityException
 import org.dungeongardener.model.creature.Creature
@@ -9,19 +10,17 @@ import java.util.*
 /**
  *
  */
-abstract class ActivityBase() : Activity {
-
-    val subActivities: MutableList<Activity> = ArrayList()
+abstract class ActivityBase(val subActivities: MutableList<Activity> = ArrayList()) : Activity {
 
     fun addActivity(activity: Activity) {
         subActivities.add(activity)
     }
 
-    override final fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
+    override final fun enter(character: Creature, callback: BackgroundCallback, context: Context, world: World): Boolean {
 
         callback.enteredActivity(this)
 
-        return try {doEnter(character, callback, context) }
+        return try {doEnter(character, callback, context, world) }
             catch (e: InterruptActivityException) {
                 if (e.targetActivity == name) {
                     // We should resume at this activity
@@ -34,5 +33,9 @@ abstract class ActivityBase() : Activity {
             }
     }
 
-    protected abstract fun doEnter(character: Creature, callback: BackgroundCallback, backgroundState: Context): Boolean
+    protected abstract fun doEnter(character: Creature, callback: BackgroundCallback, backgroundState: Context, world: World): Boolean
+
+    override fun toString(): String {
+        return name
+    }
 }

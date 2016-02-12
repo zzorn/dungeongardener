@@ -12,10 +12,10 @@ import java.util.*
  * Used for importing definition files.
  */
 class ImportContext(val basePath: File = File("./"),
-                    val initialRegisteredLanguages: List<Language<*>> = emptyList()) {
+                    val initialRegisteredLanguages: List<Language<out Definitions>> = emptyList()) {
 
     private val imports: MutableMap<Import, Definitions> = LinkedHashMap()
-    private val languages: MutableMap<String, Language<*>> = LinkedHashMap()
+    private val languages: MutableMap<String, Language<out Definitions>> = LinkedHashMap()
 
     init {
         for (lang in initialRegisteredLanguages) {
@@ -23,11 +23,11 @@ class ImportContext(val basePath: File = File("./"),
         }
     }
 
-    fun <T>registerLanguage(language: Language<T>) {
+    fun <T: Definitions>registerLanguage(language: Language<T>) {
         registerLanguage(language, language.extension.toString())
     }
 
-    fun <T>registerLanguage(language: Language<T>, extension: String) {
+    fun <T: Definitions>registerLanguage(language: Language<T>, extension: String) {
         Check.identifier(extension, "extension")
         languages.put(extension, language)
     }
@@ -43,7 +43,7 @@ class ImportContext(val basePath: File = File("./"),
             val file = import.getFile(basePath)
             val language = languages.get(import.type)
             if (language == null) throw ParsingError("Unknown language type '${import.type}' when trying to import '$file'")
-            definitions = language.parseProgram(file)
+            definitions = language.parseFirst(file)
             imports.put(import, definitions)
 
             // Load all imports used by the loaded definitions
@@ -74,7 +74,7 @@ class ImportContext(val basePath: File = File("./"),
         }
 
         // Process self
-        definitions.process(context, this)
+        definitions.process(context)
     }
 
     /**
@@ -100,7 +100,40 @@ class ImportContext(val basePath: File = File("./"),
         // Process the last imported program first, as it should have least dependencies.
         // Although dependencies are anyway resolved when things are evaluated, so should mostly not matter
         for (program in imports.values.reversed()) {
-            program.process(context, this)
+            program.process(context)
+        }
+    }
+
+    /**
+     * Load all definitions that we can load and process them
+     */
+    fun loadAll(context: Context = SimpleContext()) : Context {
+        // Load all
+        loadAllInDir(basePath)
+
+        // Process all
+        process(context)
+
+        return context
+    }
+
+    private fun loadAllInDir(dir: File) {
+        for (file in dir.listFiles()) {
+
+            // Recurse
+            if (file.isDirectory && !file.isHidden && file.name != "." && file.name != "..") {
+                loadAllInDir(file)
+            }
+
+            // Load any files that we can load
+            if (!file.isDirectory && !file.isHidden) {
+                for (language in languages.values) {
+                    if (file.name.endsWith("." + language.extension)) {
+                        val def = language.parseFirst(file)
+                        imports.put(Import(file.relativeTo(basePath)), def)
+                    }
+                }
+            }
         }
     }
 }

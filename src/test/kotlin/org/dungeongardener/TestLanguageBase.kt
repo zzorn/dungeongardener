@@ -31,7 +31,6 @@ class TestLanguageBase {
 
         val stringParser: Parser = ws + quotedString
         override val parser: Parser = +"foo"
-        override val fileParser: Parser = +"bar"
     }
 
     val lang = TestLanguageBase()

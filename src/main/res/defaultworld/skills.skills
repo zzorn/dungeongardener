@@ -1,0 +1,33 @@
+
+skills {
+
+    category General {
+        * Perception(INT 3) "Used for detecting things. \nRepresents hearing, sight, etc."
+        * Find Plants (DEX 10) "Allows character to search for plants"
+        * Find Pants (DEX 1) "Less said the better"
+    }
+
+    category Languages {
+        * Read & Write [language] (INT 4) "reading and writing"
+        * Speak [language] (INT 4) ""
+        * Sign language [language] (INT 5) ""
+    }
+
+    category Movement {
+        * Acrobatics (DEX 5) "(balancing, parcour, tumbling, etc)"
+        * Sneaking (DEX 11) ""
+        * Swimming (DEX 22) ""
+        * Climbing (DEX 33) ""
+        * Horseriding (DEX 11) ""
+        * Throwing (DEX 4) "(e.g. rope with weight, lasso, hook, stones, etc)"
+    }
+
+    * Survival in Forest (INT 4) ""
+    * Intimidate (CAR 4) ""
+}
+
+
+
+
+
+

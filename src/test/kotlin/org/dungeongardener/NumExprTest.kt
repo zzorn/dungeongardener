@@ -2,6 +2,7 @@ package org.dungeongardener
 
 import org.dungeongardener.util.SimpleContext
 import org.dungeongardener.util.genlang.GenLang
+import org.dungeongardener.util.genlang.nodes.Expression
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -32,15 +33,15 @@ class NumExprTest {
         val lang = GenLang()
         val context = SimpleContext()
         for (i in 1..10)
-            println("Dice test 3d6: " + lang.parseFirst(" 3D6").evaluate(context))
+            println("Dice test 3d6: " + lang.expression.parseFirst<Expression>(" 3D6").evaluate(context))
         for (i in 1..10)
-            println("Gauss test: " + lang.parseFirst("clamp(gauss(0, 2), 0, 5) + 1000").evaluate(context))
+            println("Gauss test: " + lang.expression.parseFirst<Expression>("clamp(gauss(0, 2), 0, 5) + 1000").evaluate(context))
     }
 
     private fun check(expected: Double, expression: String) {
         val lang = GenLang()
         val context = SimpleContext(mapOf("foo" to 2.0))
-        assertEquals(expected, lang.parseFirst(expression, debugOutput = false).evaluate(context), 0.00001)
+        assertEquals(expected, lang.expression.parseFirst<Expression>(expression, debugOutput = false).evaluate(context), 0.00001)
     }
 
 

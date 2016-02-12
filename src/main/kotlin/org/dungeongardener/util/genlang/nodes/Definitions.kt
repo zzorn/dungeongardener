@@ -9,7 +9,7 @@ interface Definitions {
 
     val imports: List<Import>
 
-    fun process(context: Context, importContext: ImportContext)
+    fun process(context: Context)
 
 }
 
