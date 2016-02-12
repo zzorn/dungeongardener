@@ -17,5 +17,8 @@ ordered("Vagabond") {
                 learn("Intimidate", 1d6 * 10)
             }
         }
+
+        note ("Time flies")
+        learn("Find Plants", 1d6 * 5)
     }
 }
