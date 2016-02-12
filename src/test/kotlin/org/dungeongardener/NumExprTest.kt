@@ -1,7 +1,7 @@
 package org.dungeongardener
 
 import org.dungeongardener.util.SimpleContext
-import org.dungeongardener.util.numberexpr.NumExprLanguage
+import org.dungeongardener.util.genlang.GenLang
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -29,7 +29,7 @@ class NumExprTest {
         check(15.0, "3 + foo * 6")
         check(15.0, "max(7, 7+7)+1")
 
-        val lang = NumExprLanguage()
+        val lang = GenLang()
         val context = SimpleContext()
         for (i in 1..10)
             println("Dice test 3d6: " + lang.parseFirst(" 3D6").evaluate(context))
@@ -38,7 +38,7 @@ class NumExprTest {
     }
 
     private fun check(expected: Double, expression: String) {
-        val lang = NumExprLanguage()
+        val lang = GenLang()
         val context = SimpleContext(mapOf("foo" to 2.0))
         assertEquals(expected, lang.parseFirst(expression, debugOutput = false).evaluate(context), 0.00001)
     }

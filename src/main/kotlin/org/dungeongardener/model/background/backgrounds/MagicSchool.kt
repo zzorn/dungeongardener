@@ -20,7 +20,7 @@ class MagicSchool(override val name: String,
         var year = 1
         var scholarship = false
 
-        character.basicStats.int
+        character.basicAttributes.int
         callback.note("")
 
 /*

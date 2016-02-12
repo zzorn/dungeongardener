@@ -13,7 +13,7 @@ data class Creature(
         var name: String? = null,
         var nickName: String? = null,
         var surName: String? = null,
-        val basicStats: BasicStats = BasicStats(),
+        val basicAttributes: BasicAttributes = BasicAttributes(),
         val weight_kg: Double = 0.0,
         val length_m: Double = 0.0,
         var age_years: Double = 0.0,
@@ -23,7 +23,8 @@ data class Creature(
         var maxHitpoints: Double = 0.0,
         var maxMana: Double = 0.0,
         var hitpoints: Double = maxHitpoints,
-        var mana: Double = maxMana) {
+        var mana: Double = maxMana,
+        val history: MutableList<HistoryEntry> = ArrayList()) {
 
 
     fun addSkillExp(skill: Skill, skillExp: Double) {

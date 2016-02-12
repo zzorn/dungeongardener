@@ -30,4 +30,6 @@ interface Context {
      */
     fun <T>getReference(ref: String): T = getReference<T>(Symbol.get(ref))
 
+    fun setReference(name: String, value: Any)
+
 }

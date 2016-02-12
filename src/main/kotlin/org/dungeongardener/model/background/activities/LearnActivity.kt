@@ -9,14 +9,12 @@ import org.dungeongardener.util.genlang.nodes.Expression
 /**
  *
  */
-class LearnAllOnListActivity(val expAmount: Expression, val skillList: List<Skill>) : SimpleActivity() {
+class LearnActivity(val expAmount: Expression, val skill: Skill) : SimpleActivity() {
 
     override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
 
-        // Add exp to all skills
-        for (skill in skillList) {
-            character.addSkillExp(skill, expAmount.evaluate(context))
-        }
+        // Add exp to the skill
+        character.addSkillExp(skill, expAmount.evaluate(context))
 
         return true
     }

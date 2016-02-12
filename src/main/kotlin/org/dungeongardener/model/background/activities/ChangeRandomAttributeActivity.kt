@@ -1,22 +1,21 @@
 package org.dungeongardener.model.background.activities
 
 import org.dungeongardener.model.background.BackgroundCallback
+import org.dungeongardener.model.creature.Attribute
 import org.dungeongardener.model.creature.Creature
-import org.dungeongardener.model.skill.Skill
 import org.dungeongardener.util.Context
 import org.dungeongardener.util.genlang.nodes.Expression
 
 /**
- *
+ * Changes one random attribute
  */
-class LearnAllOnListActivity(val expAmount: Expression, val skillList: List<Skill>) : SimpleActivity() {
-
+class ChangeRandomAttributeActivity(override val name: String,
+                              val change: Expression) : SimpleActivity() {
     override fun enter(character: Creature, callback: BackgroundCallback, context: Context): Boolean {
 
-        // Add exp to all skills
-        for (skill in skillList) {
-            character.addSkillExp(skill, expAmount.evaluate(context))
-        }
+        val attribute = context.random.nextElement(Attribute.values())
+
+        character.basicAttributes.changeAttribute(attribute, change.evaluate(context))
 
         return true
     }

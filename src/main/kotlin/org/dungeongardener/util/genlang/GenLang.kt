@@ -1,48 +1,151 @@
-package org.dungeongardener.util.numberexpr
+package org.dungeongardener.util.genlang
 
+import org.dungeongardener.util.genlang.nodes.*
+import org.dungeongardener.util.numberexpr.DiceExpr
+import org.dungeongardener.util.numberexpr.dice
+import org.dungeongardener.util.parser.FunctionRegistry
 import org.dungeongardener.util.parser.LanguageBase
 import org.dungeongardener.util.parser.Parser
+import org.flowutils.MathUtils
+import org.flowutils.MathUtils.*
 import org.flowutils.Symbol
+import java.lang.Math.*
 
 
-class NumExprLanguage() : LanguageBase<NumExpr>() {
+/**
+ * Generic language
+ */
+// TODO: Add statements, assignmentStatements, imports, string/other generators?  Maybe use other char than + for generator concatenation.
+// TODO: Maybe use different language to load a file depending on the postfix, but collect the loaded things in the same context?
+// TODO: Add lists and maps
+class GenLang() : LanguageBase<Expression>() {
 
+    val functions = FunctionRegistry()
 
     val expression = lazy
-    val factor = lazy
 
-    val parens = +"(" - expression - ")" + ws
-    val unaryMinus = (+"-" + ws + factor).generates { NegExpr(it.pop()) }
-    val constant = (double + ws).generates { ConstantExpr(it.pop()) }
+    val reference = identifier.generates { ReferenceExpr(Symbol.get(it.pop())) } + ws
+
+    val numberConstant = (double + ws).generates { ConstantExpr(it.pop()) }
+
+    val boolConstant = any(
+            keyword("true").generates { ConstantExpr(true) },
+            keyword("false").generates { ConstantExpr(false) }
+    )
+
     val dice = (positiveInteger + char("dD") + positiveInteger + ws).generates {
         DiceExpr(it.pop(), it.pop())
     }
-    val reference = identifier.generates { ReferenceExpr(Symbol.get(it.pop())) } + ws
-    val functions2 = functionParser2<NumExpr, NumExpr>(expression, mapOf(
-            "random" to { start, end -> RandomExpr(start, end) },
-            "gauss" to { mean, stdDev -> GaussianExpr(mean, stdDev) },
-            "max" to { a, b -> Fun2Expr("max", a, b, {x, y -> if (x >= y) x else y}) },
-            "min" to { a, b -> Fun2Expr("min", a, b, {x, y -> if (x <= y) x else y}) }
-    ))
-    val functions3 = functionParser3<NumExpr, NumExpr>(expression, mapOf(
-            "clamp" to { value, min, max -> ClampExpr(value, min, max) }
-    ))
+
+    val parens = (+"(" - expression - ")" + ws).generates { ParensExpr(it.pop()) }
+
+    val ifExpr = (keyword("if") + "(" - expression + ")" - expression + keyword("else") + expression).generates {
+        IfElseExpr(it.pop(2), it.pop(1), it.pop())
+    }
+
+    val atom = any(parens, dice, boolConstant, numberConstant, ifExpr, functionParser(functions, expression), reference)
+
+    val unaryMinus = any((+"-" + ws + atom).generates { UnaryExpr<Double>("-", it.pop(), { b -> -b}) }, atom)
+
+    val unaryNot = any((keyword("not") + unaryMinus).generates { UnaryExpr<Boolean>("not", it.pop(), { b -> !b}) }, unaryMinus)
+
+    val numExpression = operatorNodeParser<Double>(unaryNot,
+            "*" to { a, b -> a * b },
+            "/" to { a, b -> a / b },
+            "+" to { a, b -> a + b },
+            "-" to { a, b -> a - b }
+    )
+
+    val comparisonExpression = operatorNodeParser<Double>(numExpression,
+            "<" to { a, b -> a < b },
+            ">" to { a, b -> a > b },
+            "<=" to { a, b -> a <= b },
+            ">=" to { a, b -> a >= b }
+    )
+
+    val equivalenceExpression = operatorNodeParser<Any>(comparisonExpression,
+            "==" to { a, b -> a == b },
+            "!=" to { a, b -> a != b }
+    )
+
+    val boolExpression = operatorNodeParser<Boolean>(equivalenceExpression,
+            "and" to { a, b -> a && b },
+            "or" to { a, b -> a || b }
+    )
+
+
+
+    val assignment = ((identifier - "=" - expression).generates {  }).cut()
+
+    val statement = any(assignment)
+
+    val packageRef = (identifier + zeroOrMore(+"." + identifier)).generates { it.text } + ws
+
+    val import = keyword("import") + packageRef
+
+    val program = zeroOrMore(import) + zeroOrMore(statement)
 
     init {
+        expression.parser = boolExpression
+
         addEndOfLineComment("#")
+        addEndOfLineComment("//")
+        addBlockComment("/*", "*/")
 
-        factor.parser = any(parens, unaryMinus, dice, constant, functions3, functions2, reference)
-
-        expression.parser = expressionTree<NumExpr>(factor,
-                "*" to { a, b -> MulExpr(a, b) },
-                "/" to { a, b -> DivExpr(a, b) },
-                "+" to { a, b -> SumExpr(a, b) },
-                "-" to { a, b -> SubExpr(a, b) }
-                )
+        addBuiltinMathFunctions()
     }
 
     override val parser: Parser = ws + expression + endOfInput
 
+    private fun addBuiltinMathFunctions() {
+
+        functions.addFun<Double>("random", 2) { it.context.random.nextDouble(it.a, it.b) }
+        functions.addFun<Double>("randomInt", 2) { it.context.random.nextInt(it.a.toInt(), it.b.toInt()).toDouble() }
+        functions.addFun<Double>("gauss", 2) { it.context.random.nextGaussian(it.a, it.b) }
+        functions.addFun<Double>("dice", 2) { it.context.random.dice(it.b.toInt(), it.a.toInt()).toDouble() }
+        functions.addFun<Double>("singleDice", 1) { it.context.random.dice(it.a.toInt()).toDouble() }
+
+        functions.addFun<Double>("max", 2) { if (it.a >= it.b) it.a else it.b }
+        functions.addFun<Double>("min", 2) { if (it.a <= it.b) it.a else it.b }
+        functions.addFun<Double>("clamp", 3) { clamp(it.a, it.b, it.c) }
+        functions.addFun<Double>("clamp0to1", 1) { clamp0To1(it.x) }
+        functions.addFun<Double>("wrap", 3) { wrap(it.a, it.b, it.c) }
+        functions.addFun<Double>("wrap0to1", 1) { wrap0To1(it.x) }
+        functions.addFun<Double>("abs", 1) { abs(it.x) }
+        functions.addFun<Double>("signum", 1) { signum(it.x) }
+
+        functions.addFun<Double>("round", 1) { MathUtils.round(it.x) }
+        functions.addFun<Double>("ceil", 1) { ceil(it.x) }
+        functions.addFun<Double>("floor", 1) { floor(it.x) }
+
+        functions.addFun<Double>("mod", 2) { it.a % it.b }
+        functions.addFun<Double>("modPositive", 2) { modPositive(it.a, it.b) }
+
+        functions.addFun<Double>("exp", 1) { exp(it.x) }
+        functions.addFun<Double>("log", 1) { log(it.x) }
+        functions.addFun<Double>("log10", 1) { log10(it.x) }
+        functions.addFun<Double>("logN", 2) { log(it.x, it.y) }
+        functions.addFun<Double>("sqrt", 1) { sqrt(it.x) }
+        functions.addFun<Double>("pow", 2) { pow(it.x, it.y) }
+
+        functions.addFun<Double>("sin", 1) { sin(it.x) }
+        functions.addFun<Double>("cos", 1) { cos(it.x) }
+        functions.addFun<Double>("tan", 1) { tan(it.x) }
+        functions.addFun<Double>("atan2", 2) { Math.atan2(it.x, it.y) }
+
+        functions.addFun<Double>("sigmoid", 2) { sigmoid(it.a, it.b) }
+        functions.addFun<Double>("sigmoid0to1", 2) { sigmoidZeroToOne(it.a, it.b) }
+
+        functions.addFun<Double>("mix", 3) { mix(it.a, it.b, it.c) }
+        functions.addFun<Double>("mixAndClamp", 3) { mixAndClamp(it.a, it.b, it.c) }
+        functions.addFun<Double>("mixSmooth", 3) { mixSmooth(it.a, it.b, it.c) }
+        functions.addFun<Double>("relPos", 3) { relPos(it.a, it.b, it.c) }
+        functions.addFun<Double>("map", 5) { map(it.a, it.b, it.c, it.d, it.e) }
+        functions.addFun<Double>("mapAndClamp", 5) { mapAndClamp(it.a, it.b, it.c, it.d, it.e) }
+        functions.addFun<Double>("mapSmooth", 5) { mapSmooth(it.a, it.b, it.c, it.d, it.e) }
+
+        functions.addFun<Double>("average", -1) { var sum = 0.0; for (p in it.parameters) sum += p; sum / it.parameterCount }
+    }
 
 
 

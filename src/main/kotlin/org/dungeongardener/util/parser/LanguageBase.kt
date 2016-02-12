@@ -1,5 +1,6 @@
 package org.dungeongardener.util.parser
 
+import org.dungeongardener.util.genlang.nodes.InfixExpr
 import org.dungeongardener.util.parser.parsers.*
 import java.util.*
 
@@ -14,17 +15,6 @@ abstract class LanguageBase<T>() : Language<T>() {
         override fun doParse(parserNode: ASTNode): Boolean {
             for (parser in parsers) {
                 if (parser.parse(parserNode)) {
-                    return true
-                }
-            }
-            return false
-        }
-    }
-
-    private class DynamicAnyOfStrings(val stringsToParse: Collection<String> = ArrayList()): ParserBase() {
-        override fun doParse(parserNode: ASTNode): Boolean {
-            for (stringToParser in stringsToParse) {
-                if (parserNode.attemptToConsumeText(stringToParser)) {
                     return true
                 }
             }
@@ -79,6 +69,11 @@ abstract class LanguageBase<T>() : Language<T>() {
     open val letter = CharParser('a'..'z', 'A'..'Z').named("letter")
 
     /**
+     * Parses English letters or number or underscore in upper or lower case (a..z and A..Z) by default
+     */
+    open val identifierPart = CharParser('a'..'z', 'A'..'Z', '0'..'9', '_'..'_').named("letter")
+
+    /**
      * Parses a typical programming language identifier, starting with a letter or underscore and followed by zero or more letters, underscores, and numbers.
      * Pushes the identifier to the result stack as a string.
      */
@@ -86,6 +81,11 @@ abstract class LanguageBase<T>() : Language<T>() {
             CharParser('a'..'z', 'A'..'Z', '_'..'_'),
             CharParser(Multiplicity.ZERO_OR_MORE, 'a'..'z', 'A'..'Z', '0'..'9', '_'..'_')
     ).named("identifier").generatesMatchedText()
+
+    /**
+     * A keyword that is not followed by any additional identifier characters, but can be followed by whitespace
+     */
+    fun keyword(keyword: String, ignoreCase: Boolean = false) = StringParser(keyword, ignoreCase) + not(identifierPart) + ws
 
     /**
      * Parses a string quoted with " characters, and pushes the content of the string to the result stack as a string.
@@ -291,116 +291,62 @@ abstract class LanguageBase<T>() : Language<T>() {
      *                  starting with the highest precedence operator and ending with the lowest one.
      *                  If no operators are given, the atomParser is returned as is.
      */
-    fun <T>expressionTree(atomParser: Parser, vararg operators: Pair<String, (T, T) -> Any>): Parser {
+    fun <T> operatorParser(atomParser: Parser, vararg operators: Pair<String, (T, T) -> Any>): Parser {
         var parser: Parser = atomParser
         for (operator in operators) {
             val currentParser = lazy
-            currentParser.parser = parser + ws + opt((+operator.first + ws + currentParser).generates { operator.second(it.pop(1), it.pop()) })
+            val postOperatorWs = if (operator.first.last().isJavaIdentifierPart()) not(identifierPart) + ws else ws
+            currentParser.parser = parser + ws + opt((+operator.first + postOperatorWs + currentParser).generates {
+                operator.second(it.pop(1), it.pop())
+            })
             parser = currentParser
         }
 
         return parser
     }
 
-    interface FunctionNodeBuilder1<P, R> {
-        fun createNode(function: (P) -> R, functionName: String, functionParameterNode: Any): Any
+    /**
+     * Creates a parser that handles operators with different precedence, and creates InfixNodes from the parsed operators.
+     * @param atomParser the smallest component, used as the inputs for the highest precedence operations.
+     * @param operators one or more mappings from the operator sign to the generator function for the operator,
+     *                  starting with the highest precedence operator and ending with the lowest one.
+     *                  If no operators are given, the atomParser is returned as is.
+     */
+    fun <T> operatorNodeParser(atomParser: Parser, vararg operators: Pair<String, (T, T) -> Any>): Parser {
+        var parser: Parser = atomParser
+        for (operator in operators) {
+            val currentParser = lazy
+            val postOperatorWs = if (operator.first.last().isJavaIdentifierPart()) not(identifierPart) + ws else ws
+            currentParser.parser = parser + ws + opt((+operator.first + postOperatorWs + currentParser).generates {
+                InfixExpr(operator.first, it.pop(1), it.pop(), operator.second as (Any?, Any?) -> Any?)
+            })
+            parser = currentParser
+        }
+
+        return parser
     }
 
     /**
-     * Creates a parser that parses functions with one parameter defined in the specified name to function map,
-     * and creates a function node for them using the provided functionNodeBuilder (defaulting to a builder that
-     * just passes the parsed parameter nodes from the result stack to the function and saves the result of the function on the result stack).
+     * Creates a parser that parses functions with parameters defined in the specified name to function map,
+     * and creates a function node for them using the provided functionNodeBuilder.
      */
-    fun <P, R>functionParser1(parameterParser: Parser,
-                                 functions: Map<String, (P) -> R>,
-                                 parameterBlockStart: String = "(",
-                                 parameterBlockEnd: String = ")",
-                                 functionNodeBuilder: FunctionNodeBuilder1<P, R> = object: FunctionNodeBuilder1<P, R> {
-        override fun createNode(function: (P) -> R, functionName: String, functionParameterNode: Any): Any {
-            return function(functionParameterNode as P) as Any
-        }
-    }): Parser {
-        return SequenceParser(
-                DynamicAnyOfStrings(functions.keys).generatesMatchedText(), ws,
-                +parameterBlockStart, ws,
-                parameterParser, ws,
-                +parameterBlockEnd, ws).generates {
-            val parameterNode = it.pop<Any>()
-            val functionName = it.pop<String>()
-            val function = functions.get(functionName) ?: throw ParsingError("Could not find function $functionName")
-            functionNodeBuilder.createNode(function, functionName, parameterNode)
-        }
+    fun functionParser(functions: FunctionRegistry,
+                       parameterParser: Parser,
+                       parameterBlockStart: Parser = +"(",
+                       parameterSeparator: Parser = +",",
+                       parameterBlockEnd: Parser = +")",
+                       allowWhitespace: Boolean = true,
+                       endWithWhitespace: Boolean = true): Parser {
+
+        return functions.createFunctionParser(
+                parameterParser,
+                if (allowWhitespace) ws else autoMatch,
+                parameterBlockStart,
+                parameterSeparator,
+                parameterBlockEnd,
+                endWithWhitespace
+        )
     }
 
-    interface FunctionNodeBuilder2<P, R> {
-        fun createNode(function: (P, P) -> R, functionName: String, functionParameterNode1: Any, functionParameterNode2: Any): Any
-    }
-
-    /**
-     * Creates a parser that parses functions with two parameters defined in the specified name to function map,
-     * and creates a function node for them using the provided functionNodeBuilder (defaulting to a builder that
-     * just passes the parsed parameter nodes from the result stack to the function and saves the result of the function on the result stack).
-     */
-    fun <P, R>functionParser2(parameterParser: Parser,
-                                 functions: Map<String, (P, P) -> R>,
-                                 parameterBlockStart: String = "(",
-                                 parameterSeparator: String = ",",
-                                 parameterBlockEnd: String = ")",
-                                 functionNodeBuilder: FunctionNodeBuilder2<P, R> = object: FunctionNodeBuilder2<P, R> {
-        override fun createNode(function: (P, P) -> R, functionName: String, functionParameterNode1: Any, functionParameterNode2: Any): Any {
-            return function(functionParameterNode1 as P, functionParameterNode2 as P) as Any
-        }
-    }): Parser {
-        return SequenceParser(
-                DynamicAnyOfStrings(functions.keys).generatesMatchedText(), ws,
-                +parameterBlockStart, ws,
-                parameterParser, ws,
-                +parameterSeparator, ws,
-                parameterParser, ws,
-                +parameterBlockEnd, ws).generates {
-            val parameterNode2 = it.pop<Any>()
-            val parameterNode1 = it.pop<Any>()
-            val functionName = it.pop<String>()
-            val function = functions.get(functionName) ?: throw ParsingError("Could not find function $functionName")
-            functionNodeBuilder.createNode(function, functionName, parameterNode1, parameterNode2)
-        }
-    }
-
-    interface FunctionNodeBuilder3<P, R> {
-        fun createNode(function: (P, P, P) -> R, functionName: String, functionParameterNode1: Any, functionParameterNode2: Any, functionParameterNode3: Any): Any
-    }
-
-    /**
-     * Creates a parser that parses functions with two parameters defined in the specified name to function map,
-     * and creates a function node for them using the provided functionNodeBuilder (defaulting to a builder that
-     * just passes the parsed parameter nodes from the result stack to the function and saves the result of the function on the result stack).
-     */
-    fun <P, R>functionParser3(parameterParser: Parser,
-                              functions: Map<String, (P, P, P) -> R>,
-                              parameterBlockStart: String = "(",
-                              parameterSeparator: String = ",",
-                              parameterBlockEnd: String = ")",
-                              functionNodeBuilder: FunctionNodeBuilder3<P, R> = object: FunctionNodeBuilder3<P, R> {
-        override fun createNode(function: (P, P, P) -> R, functionName: String, functionParameterNode1: Any, functionParameterNode2: Any, functionParameterNode3: Any): Any {
-            return function(functionParameterNode1 as P, functionParameterNode2 as P, functionParameterNode3 as P) as Any
-        }
-    }): Parser {
-        return SequenceParser(
-                DynamicAnyOfStrings(functions.keys).generatesMatchedText(), ws,
-                +parameterBlockStart, ws,
-                parameterParser, ws,
-                +parameterSeparator, ws,
-                parameterParser, ws,
-                +parameterSeparator, ws,
-                parameterParser, ws,
-                +parameterBlockEnd, ws).generates {
-            val parameterNode3 = it.pop<Any>()
-            val parameterNode2 = it.pop<Any>()
-            val parameterNode1 = it.pop<Any>()
-            val functionName = it.pop<String>()
-            val function = functions.get(functionName) ?: throw ParsingError("Could not find function $functionName")
-            functionNodeBuilder.createNode(function, functionName, parameterNode1, parameterNode2, parameterNode3)
-        }
-    }
 
 }

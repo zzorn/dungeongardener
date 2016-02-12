@@ -1,11 +1,12 @@
 package org.dungeongardener
 
+import org.dungeongardener.util.parser.FunctionRegistry
 import org.dungeongardener.util.parser.LanguageBase
 import org.dungeongardener.util.parser.Parser
 import org.dungeongardener.util.parser.result.ParseSuccess
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.util.*
+import java.lang.Math.*
 
 /**
  * Tests for functionality provided by LanguageBase
@@ -88,7 +89,7 @@ class TestLanguageBase {
     @Test
     fun testOperators() {
         val numberParser = lang.integer + lang.ws
-        val mathParser = lang.expressionTree<Int>(numberParser,
+        val mathParser = lang.operatorParser<Int>(numberParser,
                 "*" to {a, b -> a*b},
                 "/" to {a, b -> a/b},
                 "-" to {a, b -> a-b},
@@ -100,32 +101,33 @@ class TestLanguageBase {
 
     @Test
     fun testFunctions1() {
-        val functions1 = HashMap(mapOf<String, (Double) -> Double>(
-                "sqrt" to { x -> Math.sqrt(x) },
-                "abs" to { x -> Math.abs(x) }))
 
-        val func1 = lang.functionParser1(lang.double + lang.ws, functions1)
+        val functions = FunctionRegistry()
+        functions.addDirectFun<Double>("sqrt", 1) { sqrt(it[0]) }
+        functions.addDirectFun<Double>("abs", 1) { abs(it[0]) }
 
-        assertEquals(Math.sqrt(9.0), func1.parseFirst<Double>("sqrt ( 9.0 )"), 0.00001)
-        assertEquals(Math.abs(-9.0), func1.parseFirst<Double>("abs(-9)"), 0.00001)
+        val funcParser = lang.functionParser(functions, lang.double + lang.ws)
 
-        functions1.put("sin", {x -> Math.sin(x)})
-        assertEquals(Math.sin(1234.0), func1.parseFirst<Double>("sin (1234.0)"), 0.00001)
+        assertEquals(sqrt(9.0), funcParser.parseFirst<Double>("sqrt ( 9.0 )"), 0.00001)
+        assertEquals(abs(-9.0), funcParser.parseFirst<Double>("abs(-9)"), 0.00001)
+
+        functions.addDirectFun<Double>("sin", 1, { sin(it[0]) })
+        assertEquals(sin(1234.0), funcParser.parseFirst<Double>("sin (1234.0)"), 0.00001)
     }
 
     @Test
     fun testFunctions2() {
-        val functions2 = HashMap(mapOf<String, (Double, Double) -> Double>(
-                "sum" to { a, b -> a+b },
-                "mul" to { a, b -> a * b }))
+        val functions = FunctionRegistry()
+        functions.addDirectFun<Double>("sum", 2) { it[0] + it[1] }
+        functions.addDirectFun<Double>("mul", 2) { it[0] * it[1] }
 
-        val func2 = lang.functionParser2(lang.double + lang.ws, functions2)
+        val funcParser = lang.functionParser(functions, lang.double + lang.ws)
 
-        assertEquals(4.0 + 9.0, func2.parseFirst<Double>("sum(4,9)"), 0.00001)
-        assertEquals(3.0 * 5.0, func2.parseFirst<Double>("mul  (  3.0e0  , 5  )"), 0.00001)
+        assertEquals(4.0 + 9.0, funcParser.parseFirst<Double>("sum(4,9)"), 0.00001)
+        assertEquals(3.0 * 5.0, funcParser.parseFirst<Double>("mul  (  3.0e0  , 5  )"), 0.00001)
 
-        functions2.put("div", {a, b -> a / b})
-        assertEquals(4.0 / 3.0, func2.parseFirst<Double>("div(4, 3)"), 0.00001)
+        functions.addDirectFun<Double>("div", 2) { it[0] / it[1] }
+        assertEquals(4.0 / 3.0, funcParser.parseFirst<Double>("div(4, 3)"), 0.00001)
     }
 
 }
