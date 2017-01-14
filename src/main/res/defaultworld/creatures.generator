@@ -1,0 +1,64 @@
+
+GiantRat = Creature {
+    type: "Giant Rat"
+    Class: GiantAnimal
+    desc: "Meter-long, agile and cunning rat."
+
+    ST: 9
+    DX: 13
+    IQ: 5
+    HT: 13
+    HP: 5 + 2d3
+    Will: 10
+    Per: 10
+    FP: 13
+    Speed: 6.5
+    Move: 7
+    SM: -1
+    DR: 1
+    Dodge: 9
+
+    attacks: [
+        Bite(15, 1d - 1 cutting)
+    ]
+
+    traits [
+        NightVision(5)
+        WildAnimal
+    ]
+
+    skills [
+        Brawling(15)
+        Stealth(15)
+    ]
+
+    disease: random(5: Nothing, 10: SewerRot, 2: Rabies, 1: SleepingSickness, 1: BlackPlague)
+
+    notes: "Anyone wounded by giant rats must make a HT roll to
+            avoid infection with some disease or other. Sewer rot (-1 on
+            all attribute and skill rolls until stopped with Cure Disease)
+            is typical"
+}
+
+
+GiantRatBoss = Creature : GiantRat {
+    desc: "Huge even for a giant rat, this one looks tough, old, mean, and clever."
+    ST: +2d3
+    DX: -1d2+1
+    IQ: +1d2-1
+    HT: +1d3
+    HP: +2d6
+    FP: +1d2
+    SM: 0
+    DR: 2
+
+    attacks: [
+        Bite(16, 1d + 2 cutting)
+    ]
+
+}
+
+
+
+
+
